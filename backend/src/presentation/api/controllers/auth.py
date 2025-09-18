@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
+
 from src.application.users.commands import LoginUserCommand
 from src.application.users.handlers import JWTObtainUserHandler
+
 from ..dependencies import get_login_handler
 from ..schemas.token import TokenPairSchema
 

@@ -1,6 +1,7 @@
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.messages.entities import Message
 from src.domain.messages.repository import MessageRepository

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Self, Optional, Any
+from typing import Any, Self
 from uuid import UUID, uuid4
 
 from src.domain.common.exceptions import ValidationError

@@ -1,6 +1,8 @@
 from uuid import UUID
+
 from src.domain.agents.entities import Agent
 from src.domain.agents.repository import AgentRepository
+
 from .commands import CreateAgentCommand, UpdateAgentPromptCommand
 
 

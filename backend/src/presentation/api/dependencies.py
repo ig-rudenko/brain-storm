@@ -6,10 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.dialogs.handlers import DialogHandler
 from src.application.services import AgentLLMClient
 from src.application.users.handlers import JWTObtainUserHandler
-from src.infrastructure.db.base import get_session
-from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
 from src.infrastructure.auth.hashers import BcryptPasswordHasher, PasswordHasherProtocol
 from src.infrastructure.auth.token_service import JWTService
+from src.infrastructure.db.base import get_session
+from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
 from src.infrastructure.llm.openai_client import OpenAIChatClient
 from src.infrastructure.settings import settings
 

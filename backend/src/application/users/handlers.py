@@ -1,12 +1,9 @@
-from uuid import UUID
 
-from src.domain.users.entities import User
-from src.application.users.commands import RegisterUserCommand
-
+from src.application.users.commands import LoginUserCommand, RegisterUserCommand
 from src.domain.common.unit_of_work import UnitOfWork
+from src.domain.users.entities import User
 from src.infrastructure.auth.hashers import PasswordHasherProtocol
 from src.infrastructure.auth.token_service import JWTService, TokenPair
-from src.application.users.commands import LoginUserCommand
 
 
 class RegisterUserHandler:

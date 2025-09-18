@@ -1,9 +1,9 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
 import jwt
-from datetime import datetime, timedelta, UTC
 
 
 @dataclass(frozen=True, slots=True)

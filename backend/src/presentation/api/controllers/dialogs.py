@@ -4,6 +4,7 @@ from src.application.dialogs.commands import StartDialogCommand
 from src.application.dialogs.handlers import DialogHandler
 from src.application.users.dto import UserDTO
 from src.domain.common.exceptions import ValidationError
+
 from ..auth import get_current_user
 from ..dependencies import dialog_handler
 from ..schemas.dialogs import CreateDialogSchema, DialogSchema

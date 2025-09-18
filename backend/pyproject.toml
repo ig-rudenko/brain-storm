@@ -22,3 +22,17 @@ dev = [
     "aiosqlite>=0.21.0",
     "black>=25.1.0",
 ]
+
+
+[tool.ruff]
+lint.extend-select=[
+    "E",
+    "C",
+    "W",
+    "S",
+    "SIM",
+    "I"
+]
+lint.ignore = [
+    "E501"
+]

@@ -1,9 +1,10 @@
 from typing import Any
+
 from openai import AsyncOpenAI
 from openai.types.shared.chat_model import ChatModel
 
 from src.application.services import AgentLLMClient
-from src.domain.messages.entities import Message, AuthorType
+from src.domain.messages.entities import AuthorType, Message
 
 
 class OpenAIChatClient(AgentLLMClient):

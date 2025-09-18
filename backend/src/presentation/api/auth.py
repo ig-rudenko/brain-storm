@@ -45,10 +45,9 @@ async def get_user_or_none(
     :return: Объект пользователя :class:`User` или :class:`None`.
     :raises CredentialsException: Если пользователь не найден.
     """
-    if authorization:
-        if token_match := re.match(r"Bearer (\S+)", authorization):
-            try:
-                return await get_current_user(token_match.group(1), session, token_service)
-            except HTTPException:
-                return None
+    if authorization and (token_match := re.match(r"Bearer (\S+)", authorization)) is not None:
+        try:
+            return await get_current_user(token_match.group(1), session, token_service)
+        except HTTPException:
+            return None
     return None

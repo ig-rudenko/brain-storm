@@ -1,9 +1,9 @@
 from typing import Any
 
-from src.domain.users.entities import User
 from src.domain.agents.entities import Agent
 from src.domain.dialogs.entities import Dialog
 from src.domain.messages.entities import Message
+from src.domain.users.entities import User
 
 
 def start_dialog(user: User, agents: list[Agent], name: str) -> Dialog:

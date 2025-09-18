@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncEngine,
     AsyncSession,
+    async_scoped_session,
     async_sessionmaker,
     create_async_engine,
-    async_scoped_session,
 )
 
 

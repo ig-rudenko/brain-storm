@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from advanced_alchemy.base import UUIDAuditBase, orm_registry
-from sqlalchemy import String, func, Text, ForeignKey, Column, Table, Integer
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.domain.messages.entities import AuthorType
@@ -18,6 +18,12 @@ class UserModel(UUIDAuditBase):
     last_name: Mapped[str] = mapped_column(String(150))
     is_superuser: Mapped[bool] = mapped_column(server_default=func.false())
     is_active: Mapped[bool] = mapped_column(server_default=func.true())
+
+    dialogs: Mapped[list["DialogModel"]] = relationship(
+        lazy="selectin",
+        back_populates="user",
+        viewonly=True,
+    )
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -43,8 +49,10 @@ class AgentModel(UUIDAuditBase):
     prompt: Mapped[str] = mapped_column(Text)
 
     dialogs: Mapped[list["DialogModel"]] = relationship(
+        secondary=agents_dialogs_model,
         lazy="selectin",
         back_populates="agents",
+        viewonly=True,
     )
 
 
@@ -60,6 +68,12 @@ class DialogModel(UUIDAuditBase):
         secondary=agents_dialogs_model,
         lazy="selectin",
         back_populates="dialogs",
+        viewonly=True,
+    )
+    messages: Mapped[list["MessageModel"]] = relationship(
+        lazy="selectin",
+        back_populates="dialog",
+        viewonly=True,
     )
 
 
@@ -73,9 +87,8 @@ class MessageModel(UUIDAuditBase):
     author_type: Mapped[AuthorType]
     meta_data: Mapped[dict]
 
-    user: Mapped["UserModel"] = relationship(
-        lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
-    )
-    agent: Mapped["AgentModel"] = relationship(
-        lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
+    dialog: Mapped[DialogModel] = relationship(
+        lazy="joined",
+        back_populates="messages",
+        innerjoin=True,
     )

@@ -1,14 +1,16 @@
 import asyncio
 from uuid import UUID
 
-from src.domain.dialogs.services import start_dialog, send_message
-from .commands import StartDialogCommand, SendMessageCommand
-from .dto import DialogDTO, MessageDTO
-from ..services import AgentLLMClient
+from src.domain.dialogs.services import send_message, start_dialog
+
 from ...domain.common.exceptions import ValidationError
 from ...domain.common.unit_of_work import UnitOfWork
 from ...domain.dialogs.entities import Dialog
 from ...domain.messages.entities import AuthorType, Message
+from ..messages.dto import MessageDTO
+from ..services import AgentLLMClient
+from .commands import SendMessageCommand, StartDialogCommand
+from .dto import DialogDTO
 
 
 class DialogHandler:
@@ -26,7 +28,7 @@ class DialogHandler:
                     f"User with id {user_id} is not active. Only active users can start dialogs"
                 )
             if not cmd.agent_ids:
-                raise ValidationError(f"Must have at least one agent to start dialog")
+                raise ValidationError("Must have at least one agent to start dialog")
 
             agents = []
             for aid in cmd.agent_ids:

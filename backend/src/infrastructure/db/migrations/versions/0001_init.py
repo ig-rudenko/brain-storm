@@ -8,9 +8,9 @@ Create Date: 2025-09-18 17:09:48.802943
 
 from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
 import advanced_alchemy
+import sqlalchemy as sa
+from alembic import op
 from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
 

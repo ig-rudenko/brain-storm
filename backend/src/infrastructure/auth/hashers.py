@@ -1,5 +1,6 @@
-from passlib.context import CryptContext
 from abc import ABC, abstractmethod
+
+from passlib.context import CryptContext
 
 
 class PasswordHasherProtocol(ABC):

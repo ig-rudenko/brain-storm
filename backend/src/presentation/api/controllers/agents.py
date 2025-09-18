@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends
 from uuid import UUID
+
+from fastapi import APIRouter, Depends
+
 from src.application.agents.commands import CreateAgentCommand, UpdateAgentPromptCommand
 from src.application.agents.handlers import AgentCommandHandler
 

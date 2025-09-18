@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.db.repositories.agent_repo import SqlAlchemyAgentRepository
-from src.infrastructure.db.repositories.user_repo import SqlAlchemyUserRepository
 from src.infrastructure.db.repositories.dialog_repo import SqlAlchemyDialogRepository
 from src.infrastructure.db.repositories.message_repo import SqlAlchemyMessageRepository
+from src.infrastructure.db.repositories.user_repo import SqlAlchemyUserRepository
 
 
 class SqlAlchemyUnitOfWork(UnitOfWork):

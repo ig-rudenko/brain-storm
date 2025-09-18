@@ -1,11 +1,11 @@
 import asyncio
 from logging.config import fileConfig
 
+from advanced_alchemy.base import orm_registry
 from alembic import context
-from sqlalchemy import pool, Connection
+from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from advanced_alchemy.base import orm_registry
 from src.infrastructure.db.models import *  # noqa
 from src.infrastructure.settings import settings
 

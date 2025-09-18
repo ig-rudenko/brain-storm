@@ -1,11 +1,12 @@
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from src.domain.dialogs.entities import Dialog
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.domain.agents.entities import Agent
+from src.domain.dialogs.entities import Dialog
 from src.domain.dialogs.repository import DialogRepository
-from src.infrastructure.db.models import DialogModel, AgentModel
+from src.infrastructure.db.models import AgentModel, DialogModel
 
 
 class SqlAlchemyDialogRepository(DialogRepository):
