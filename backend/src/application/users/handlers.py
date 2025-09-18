@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.domain.users.entities import User
 from src.application.users.commands import RegisterUserCommand
 
@@ -29,7 +31,7 @@ class RegisterUserHandler:
         return user
 
 
-class JWTLoginUserHandler:
+class JWTObtainUserHandler:
     def __init__(self, uow: UnitOfWork, hasher: PasswordHasherProtocol, token_service: JWTService):
         self.uow = uow
         self.hasher = hasher

@@ -22,7 +22,7 @@ class SqlAlchemyAgentRepository(AgentRepository):
         result = await self.session.execute(stmt)
         return [self._to_domain(r) for r in result.scalars().all()]
 
-    async def add(self, agent: Agent) -> None:
+    async def add(self, agent: Agent) -> Agent:
         model = AgentModel(
             id=agent.id,
             name=agent.name,
@@ -32,8 +32,10 @@ class SqlAlchemyAgentRepository(AgentRepository):
         )
         self.session.add(model)
         await self.session.flush()
+        await self.session.refresh(model)
+        return self._to_domain(model)
 
-    async def update(self, agent: Agent) -> None:
+    async def update(self, agent: Agent) -> Agent | None:
         stmt = select(AgentModel).where(AgentModel.id == agent.id)
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
@@ -43,6 +45,8 @@ class SqlAlchemyAgentRepository(AgentRepository):
             model.prompt = agent.prompt
             model.temperature = agent.temperature
             await self.session.flush()
+            await self.session.refresh(model)
+            return self._to_domain(model)
 
     async def delete(self, agent_id: UUID) -> None:
         stmt = select(AgentModel).where(AgentModel.id == agent_id)

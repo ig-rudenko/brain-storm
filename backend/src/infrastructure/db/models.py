@@ -4,6 +4,8 @@ from advanced_alchemy.base import UUIDAuditBase, orm_registry
 from sqlalchemy import String, func, Text, ForeignKey, Column, Table, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.domain.messages.entities import AuthorType
+
 
 class UserModel(UUIDAuditBase):
     __tablename__ = "users"
@@ -24,12 +26,12 @@ class UserModel(UUIDAuditBase):
         return self.username
 
 
-agents_conversations_model = Table(
-    "agents_conversations",
+agents_dialogs_model = Table(
+    "agents_dialogs",
     orm_registry.metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("agent_id", ForeignKey("agents.id", ondelete="RESTRICT")),
-    Column("conversation_id", ForeignKey("conversations.id", ondelete="RESTRICT")),
+    Column("dialog_id", ForeignKey("dialogs.id", ondelete="RESTRICT")),
 )
 
 
@@ -40,37 +42,40 @@ class AgentModel(UUIDAuditBase):
     description: Mapped[str] = mapped_column(Text)
     prompt: Mapped[str] = mapped_column(Text)
 
-    conversations: Mapped[list["ConversationModel"]] = relationship(
+    dialogs: Mapped[list["DialogModel"]] = relationship(
         lazy="selectin",
         back_populates="agents",
     )
 
 
-class ConversationModel(UUIDAuditBase):
-    __tablename__ = "conversations"
+class DialogModel(UUIDAuditBase):
+    __tablename__ = "dialogs"
     name: Mapped[str] = mapped_column(String(150))
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
 
     user: Mapped[UserModel] = relationship(
-        lazy="joined", back_populates="conversations", innerjoin=True, viewonly=True
+        lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
     )
     agents: Mapped[list["AgentModel"]] = relationship(
-        secondary=agents_conversations_model,
+        secondary=agents_dialogs_model,
         lazy="selectin",
-        back_populates="conversations",
+        back_populates="dialogs",
     )
 
 
 class MessageModel(UUIDAuditBase):
+    __tablename__ = "messages"
+
     text: Mapped[str] = mapped_column(Text)
 
-    conversation_id: Mapped[UUID] = mapped_column(ForeignKey("conversations.id", ondelete="RESTRICT"))
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    agent_id: Mapped[UUID] = mapped_column(ForeignKey("agents.id", ondelete="RESTRICT"), nullable=True)
+    dialog_id: Mapped[UUID] = mapped_column(ForeignKey("dialogs.id", ondelete="RESTRICT"))
+    author_id: Mapped[UUID]
+    author_type: Mapped[AuthorType]
+    meta_data: Mapped[dict]
 
     user: Mapped["UserModel"] = relationship(
-        lazy="joined", back_populates="conversations", innerjoin=True, viewonly=True
+        lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
     )
     agent: Mapped["AgentModel"] = relationship(
-        lazy="joined", back_populates="conversations", innerjoin=True, viewonly=True
+        lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
     )

@@ -15,11 +15,11 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def add(self, user: User) -> None:
+    async def add(self, user: User) -> User:
         pass
 
     @abstractmethod
-    async def update(self, user: User) -> None:
+    async def update(self, user: User) -> User | None:
         pass
 
     @abstractmethod

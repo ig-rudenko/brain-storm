@@ -15,11 +15,11 @@ class AgentRepository(ABC):
         pass
 
     @abstractmethod
-    async def add(self, agent: Agent) -> None:
+    async def add(self, agent: Agent) -> Agent:
         pass
 
     @abstractmethod
-    async def update(self, agent: Agent) -> None:
+    async def update(self, agent: Agent) -> Agent | None:
         pass
 
     @abstractmethod

@@ -17,32 +17,53 @@ class SqlAlchemyUserRepository(UserRepository):
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
+    async def get_by_username(self, username: str) -> User | None:
+        stmt = select(UserModel).where(UserModel.username == username)
+        result = await self.session.execute(stmt)
+        row = result.scalar_one_or_none()
+        return self._to_domain(row) if row else None
+
+    async def get_by_email(self, email: str) -> User | None:
+        stmt = select(UserModel).where(UserModel.email == email)
+        result = await self.session.execute(stmt)
+        row = result.scalar_one_or_none()
+        return self._to_domain(row) if row else None
+
     async def list_all(self) -> list[User]:
         stmt = select(UserModel)
         result = await self.session.execute(stmt)
         return [self._to_domain(r) for r in result.scalars().all()]
 
-    async def add(self, user: User) -> None:
+    async def add(self, user: User) -> User:
         model = UserModel(
             id=user.id,
-            name=user.name,
-            description=user.description,
-            prompt=user.prompt,
-            temperature=user.temperature,
+            username=user.username,
+            password=user.password_hash,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            is_superuser=user.is_superuser,
+            is_active=user.is_active,
         )
         self.session.add(model)
         await self.session.flush()
+        await self.session.refresh(model)
+        return self._to_domain(model)
 
-    async def update(self, user: User) -> None:
+    async def update(self, user: User) -> User | None:
         stmt = select(UserModel).where(UserModel.id == user.id)
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
         if model is not None:
+            model.username = user.username
+            model.password = user.password_hash
             model.email = user.email
             model.first_name = user.first_name
             model.last_name = user.last_name
             model.is_superuser = user.is_superuser
             await self.session.flush()
+            await self.session.refresh(model)
+            return self._to_domain(model)
 
     async def delete(self, user_id: UUID) -> None:
         stmt = select(UserModel).where(UserModel.id == user_id)
@@ -58,9 +79,11 @@ class SqlAlchemyUserRepository(UserRepository):
             id=model.id,
             username=model.username,
             email=model.email,
-            password=model.password,
+            password_hash=model.password,
             first_name=model.first_name,
             last_name=model.last_name,
             is_superuser=model.is_superuser,
             is_active=model.is_active,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
         )

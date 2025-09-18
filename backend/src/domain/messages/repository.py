@@ -11,15 +11,15 @@ class MessageRepository(ABC):
         pass
 
     @abstractmethod
-    async def list_all(self) -> list[Message]:
+    async def get_by_dialog_id(self, dialog_id: UUID, limit: int = 10, offset: int = 0) -> list[Message]:
         pass
 
     @abstractmethod
-    async def add(self, message: Message) -> None:
+    async def add(self, message: Message) -> Message:
         pass
 
     @abstractmethod
-    async def update(self, message: Message) -> None:
+    async def update(self, message: Message) -> Message | None:
         pass
 
     @abstractmethod

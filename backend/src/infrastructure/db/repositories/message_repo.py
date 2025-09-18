@@ -17,28 +17,40 @@ class SqlAlchemyMessageRepository(MessageRepository):
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
-    async def list_all(self) -> list[Message]:
-        stmt = select(MessageModel)
+    async def get_by_dialog_id(self, dialog_id: UUID, limit: int = 10, offset: int = 0) -> list[Message]:
+        stmt = (
+            select(MessageModel)
+            .limit(limit)
+            .offset(offset)
+            .where(MessageModel.dialog_id == dialog_id)
+            .order_by(MessageModel.created_at.desc())
+        )
         result = await self.session.execute(stmt)
         return [self._to_domain(r) for r in result.scalars().all()]
 
-    async def add(self, message: Message) -> None:
+    async def add(self, message: Message) -> Message:
         model = MessageModel(
             id=message.id,
             text=message.text,
-            conversation_id=message.conversation_id,
-            agent_id=message.agent_id,
+            dialog_id=message.dialog_id,
+            author_id=message.author_id,
+            author_type=message.author_type,
+            meta_data=message.metadata,
         )
         self.session.add(model)
         await self.session.flush()
+        await self.session.refresh(model)
+        return self._to_domain(model)
 
-    async def update(self, message: Message) -> None:
+    async def update(self, message: Message) -> Message | None:
         stmt = select(MessageModel).where(MessageModel.id == message.id)
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
         if model is not None:
             model.text = message.text
             await self.session.flush()
+            await self.session.refresh(model)
+            return self._to_domain(model)
 
     async def delete(self, message_id: UUID) -> None:
         stmt = select(MessageModel).where(MessageModel.id == message_id)
@@ -53,7 +65,8 @@ class SqlAlchemyMessageRepository(MessageRepository):
         return Message(
             id=model.id,
             text=model.text,
-            conversation_id=model.conversation_id,
-            agent_id=model.agent_id,
-            user_id=model.user_id,
+            dialog_id=model.dialog_id,
+            author_id=model.author_id,
+            author_type=model.author_type,
+            metadata=model.meta_data,
         )

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal
+from uuid import UUID
 
 import jwt
 from datetime import datetime, timedelta, UTC
@@ -26,7 +27,7 @@ class JWTService:
             refresh=self._create_token(user_id, "refresh"),
         )
 
-    def validate_user(self, token: str, user_id: str, type_: token_type) -> None:
+    def get_user_id(self, token: str, type_: token_type) -> UUID:
         data = jwt.decode(token, self.secret, algorithms=["HS256"])
         if data["exp"] < datetime.now(UTC):
             raise ValueError("Token expired. Please log in again to obtain a new one.")
@@ -36,10 +37,7 @@ class JWTService:
             raise ValueError(
                 "Token does not contain the correct type. Please log in again to obtain a new one."
             )
-        if data["sub"] != user_id:
-            raise ValueError(
-                "Token does not contain the correct user ID. Please log in again to obtain a new one."
-            )
+        return UUID(f"urn:uuid:{data["sub"]}")
 
     def _create_token(self, user_id: str, type_: token_type) -> str:
         if type_ == "access":

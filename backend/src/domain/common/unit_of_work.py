@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from ..agents.repository import AgentRepository
-from ..conversations.repository import ConversationRepository
+from ..dialogs.repository import DialogRepository
 from ..messages.repository import MessageRepository
 from ..users.repository import UserRepository
 
@@ -11,7 +11,7 @@ class UnitOfWork(ABC):
 
     agents: "AgentRepository"
     users: "UserRepository"
-    conversations: "ConversationRepository"
+    dialogs: "DialogRepository"
     messages: "MessageRepository"
 
     @abstractmethod
