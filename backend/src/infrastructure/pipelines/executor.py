@@ -4,8 +4,8 @@ from uuid import UUID
 from src.application.agents.handlers import AgentRunner
 from src.application.services import AgentLLMClient
 from src.domain.agents.entities import Agent
-from src.domain.messages.entities import Message, AuthorType
-from src.domain.pipelines.entities import Pipeline, Node, TransformNode
+from src.domain.messages.entities import AuthorType, Message
+from src.domain.pipelines.entities import Node, Pipeline, TransformNode
 
 
 class PipelineExecutor:

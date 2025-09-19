@@ -1,10 +1,9 @@
 from uuid import UUID
 
 from src.application.services import AgentLLMClient
-from src.domain.messages.entities import Message, AuthorType
-
 from src.domain.agents.entities import Agent
 from src.domain.agents.repository import AgentRepository
+from src.domain.messages.entities import Message
 
 from .commands import CreateAgentCommand, UpdateAgentPromptCommand
 
