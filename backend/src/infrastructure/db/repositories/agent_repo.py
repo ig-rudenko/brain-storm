@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.agents.entities import Agent
 from src.domain.agents.repository import AgentRepository
 from src.infrastructure.db.models import AgentModel
+from .mixins import SqlAlchemyRepositoryMixin
 
 
-class SqlAlchemyAgentRepository(AgentRepository):
+class SqlAlchemyAgentRepository(AgentRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -32,7 +33,7 @@ class SqlAlchemyAgentRepository(AgentRepository):
             temperature=agent.temperature,
         )
         self.session.add(model)
-        await self.session.flush()
+        await self._flush_changes()
         await self.session.refresh(model)
         return self._to_domain(model)
 
@@ -45,7 +46,7 @@ class SqlAlchemyAgentRepository(AgentRepository):
             model.description = agent.description
             model.prompt = agent.prompt
             model.temperature = agent.temperature
-            await self.session.flush()
+            await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
 
@@ -55,7 +56,7 @@ class SqlAlchemyAgentRepository(AgentRepository):
         model = result.scalar_one_or_none()
         if model is not None:
             await self.session.delete(model)
-            await self.session.flush()
+            await self._flush_changes()
 
     @staticmethod
     def _to_domain(model: AgentModel) -> Agent:

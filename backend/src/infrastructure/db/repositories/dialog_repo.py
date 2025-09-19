@@ -7,9 +7,10 @@ from src.domain.agents.entities import Agent
 from src.domain.dialogs.entities import Dialog
 from src.domain.dialogs.repository import DialogRepository
 from src.infrastructure.db.models import AgentModel, DialogModel
+from .mixins import SqlAlchemyRepositoryMixin
 
 
-class SqlAlchemyDialogRepository(DialogRepository):
+class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -37,7 +38,7 @@ class SqlAlchemyDialogRepository(DialogRepository):
             model.agents = list(agents.scalars().all())
 
         self.session.add(model)
-        await self.session.flush()
+        await self._flush_changes()
         await self.session.refresh(model)
         return self._to_domain(model)
 
@@ -55,7 +56,7 @@ class SqlAlchemyDialogRepository(DialogRepository):
                 )
                 model.agents = list(agents.scalars().all())
 
-            await self.session.flush()
+            await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
 
@@ -65,7 +66,7 @@ class SqlAlchemyDialogRepository(DialogRepository):
         model = result.scalar_one_or_none()
         if model is not None:
             await self.session.delete(model)
-            await self.session.flush()
+            await self._flush_changes()
 
     @staticmethod
     def _to_domain(model: DialogModel) -> Dialog:

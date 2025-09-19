@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
-from domain.messages.entities import AuthorType
+from src.domain.messages.entities import AuthorType
 
 
 @dataclass(frozen=True, slots=True)

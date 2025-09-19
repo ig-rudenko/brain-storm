@@ -27,11 +27,18 @@ class JWTService:
             refresh=self._create_token(user_id, "refresh"),
         )
 
+    def refresh_token(self, refresh_token: str) -> TokenPair:
+        user_id = self.get_user_id(refresh_token, "refresh")
+        return self.create_token_pair(str(user_id))
+
     def get_user_id(self, token: str, type_: token_type) -> UUID:
-        data = jwt.decode(token, self.secret, algorithms=["HS256"])
-        if data["exp"] < datetime.now(UTC):
+        try:
+            data = jwt.decode(token, self.secret, algorithms=["HS256"])
+        except jwt.exceptions.InvalidTokenError as e:
+            raise ValueError(str(e)) from e
+        if data["exp"] < datetime.now(UTC).timestamp():
             raise ValueError("Token expired. Please log in again to obtain a new one.")
-        if not data["sub"] or not str(data["sub"]).isdigit():
+        if not data["sub"]:
             raise ValueError("Token does not contain a user ID. Please log in again to obtain a new one.")
         if data["type"] != type_:
             raise ValueError(
@@ -47,7 +54,7 @@ class JWTService:
 
         payload = {
             "sub": user_id,
-            "exp": datetime.now(UTC) + delta,
+            "exp": (datetime.now(UTC) + delta).timestamp(),
             "type": type_,
         }
         return jwt.encode(payload, self.secret, algorithm="HS256")

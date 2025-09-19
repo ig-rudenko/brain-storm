@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dialogs.handlers import DialogHandler
 from src.application.services import AgentLLMClient
-from src.application.users.handlers import JWTObtainUserHandler
+from src.application.users.handlers import JWTHandler, RegisterUserHandler
 from src.infrastructure.auth.hashers import BcryptPasswordHasher, PasswordHasherProtocol
 from src.infrastructure.auth.token_service import JWTService
 from src.infrastructure.db.base import get_session
@@ -36,12 +36,19 @@ def get_llm() -> AgentLLMClient:
     )
 
 
-def get_login_handler(
+def get_token_auth_handler(
     session: AsyncSession = Depends(get_session),
     hasher: BcryptPasswordHasher = Depends(get_hasher),
     token_service: JWTService = Depends(get_jwt_token_service),
-) -> JWTObtainUserHandler:
-    return JWTObtainUserHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher, token_service=token_service)
+) -> JWTHandler:
+    return JWTHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher, token_service=token_service)
+
+
+def get_register_handler(
+    session: AsyncSession = Depends(get_session),
+    hasher: BcryptPasswordHasher = Depends(get_hasher),
+) -> RegisterUserHandler:
+    return RegisterUserHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher)
 
 
 def dialog_handler(

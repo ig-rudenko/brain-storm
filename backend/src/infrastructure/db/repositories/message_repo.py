@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.messages.entities import Message
 from src.domain.messages.repository import MessageRepository
 from src.infrastructure.db.models import MessageModel
+from .mixins import SqlAlchemyRepositoryMixin
 
 
-class SqlAlchemyMessageRepository(MessageRepository):
+class SqlAlchemyMessageRepository(MessageRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -39,7 +40,7 @@ class SqlAlchemyMessageRepository(MessageRepository):
             meta_data=message.metadata,
         )
         self.session.add(model)
-        await self.session.flush()
+        await self._flush_changes()
         await self.session.refresh(model)
         return self._to_domain(model)
 
@@ -49,7 +50,7 @@ class SqlAlchemyMessageRepository(MessageRepository):
         model = result.scalar_one_or_none()
         if model is not None:
             model.text = message.text
-            await self.session.flush()
+            await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
 
@@ -59,7 +60,7 @@ class SqlAlchemyMessageRepository(MessageRepository):
         model = result.scalar_one_or_none()
         if model is not None:
             await self.session.delete(model)
-            await self.session.flush()
+            await self._flush_changes()
 
     @staticmethod
     def _to_domain(model: MessageModel) -> Message:

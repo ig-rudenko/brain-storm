@@ -2,13 +2,13 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.domain.users.entities import User
 from src.domain.users.repository import UserRepository
 from src.infrastructure.db.models import UserModel
+from .mixins import SqlAlchemyRepositoryMixin
 
 
-class SqlAlchemyUserRepository(UserRepository):
+class SqlAlchemyUserRepository(UserRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -46,8 +46,9 @@ class SqlAlchemyUserRepository(UserRepository):
             is_superuser=user.is_superuser,
             is_active=user.is_active,
         )
+
         self.session.add(model)
-        await self.session.flush()
+        await self._flush_changes()
         await self.session.refresh(model)
         return self._to_domain(model)
 
@@ -62,7 +63,7 @@ class SqlAlchemyUserRepository(UserRepository):
             model.first_name = user.first_name
             model.last_name = user.last_name
             model.is_superuser = user.is_superuser
-            await self.session.flush()
+            await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
 
@@ -72,7 +73,7 @@ class SqlAlchemyUserRepository(UserRepository):
         model = result.scalar_one_or_none()
         if model is not None:
             await self.session.delete(model)
-            await self.session.flush()
+            await self._flush_changes()
 
     @staticmethod
     def _to_domain(model: UserModel) -> User:
