@@ -5,7 +5,7 @@ from src.application.users.handlers import JWTHandler, RegisterUserHandler
 from src.domain.common.exceptions import UniqueError
 
 from ..dependencies import get_register_handler, get_token_auth_handler
-from ..schemas.token import TokenPairSchema, OneTokenSchema
+from ..schemas.token import OneTokenSchema, TokenPairSchema
 from ..schemas.user import RegisterUserSchema, UserSchema
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -21,7 +21,9 @@ async def login(cmd: LoginUserCommand, jwt_handler: JWTHandler = Depends(get_tok
 
 
 @router.post("/token/refresh", response_model=TokenPairSchema)
-async def login(token_data: OneTokenSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)):
+async def refresh_tokens(
+    token_data: OneTokenSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)
+):
     try:
         token_pair = await jwt_handler.handle_refresh_token(token_data.token)
         return token_pair
@@ -30,7 +32,9 @@ async def login(token_data: OneTokenSchema, jwt_handler: JWTHandler = Depends(ge
 
 
 @router.post("/token/verify", response_model=UserSchema)
-async def login(token_data: OneTokenSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)):
+async def verify_access_token(
+    token_data: OneTokenSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)
+):
     try:
         user = await jwt_handler.get_user_by_token(token_data.token)
         return user

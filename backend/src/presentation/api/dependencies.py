@@ -32,7 +32,8 @@ def get_jwt_token_service() -> JWTService:
 def get_llm() -> AgentLLMClient:
     return OpenAIChatClient(
         settings.openai_api_key,
-        settings.openai_model_name,
+        settings.openai_model,
+        settings.openai_base_url,
     )
 
 

@@ -20,7 +20,7 @@ async def create_dialog(
 ):
     try:
         return await handler.handle_start_dialog(
-            user_id=user.id, cmd=StartDialogCommand(name=data.name, agent_ids=data.agents)
+            user_id=user.id, cmd=StartDialogCommand(name=data.name, pipeline_id=data.pipeline_id)
         )
     except ValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

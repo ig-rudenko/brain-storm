@@ -7,4 +7,4 @@ class DialogDTO:
     id: UUID
     user_id: UUID
     name: str
-    agents: list[UUID]
+    pipeline_id: UUID

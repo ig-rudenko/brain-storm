@@ -48,27 +48,22 @@ class AgentModel(UUIDAuditBase):
     description: Mapped[str] = mapped_column(Text)
     prompt: Mapped[str] = mapped_column(Text)
 
-    dialogs: Mapped[list["DialogModel"]] = relationship(
-        secondary=agents_dialogs_model,
-        lazy="selectin",
-        back_populates="agents",
-        viewonly=True,
-    )
+
+class PipelineModel(UUIDAuditBase):
+    __tablename__ = "pipelines"
+    name: Mapped[str] = mapped_column(String(150))
+    description: Mapped[str] = mapped_column(Text)
+    definition: Mapped[dict]
 
 
 class DialogModel(UUIDAuditBase):
     __tablename__ = "dialogs"
     name: Mapped[str] = mapped_column(String(150))
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    pipeline_id: Mapped[UUID] = mapped_column(ForeignKey("pipelines.id", ondelete="RESTRICT"))
 
     user: Mapped[UserModel] = relationship(
         lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
-    )
-    agents: Mapped[list["AgentModel"]] = relationship(
-        secondary=agents_dialogs_model,
-        lazy="selectin",
-        back_populates="dialogs",
-        viewonly=True,
     )
     messages: Mapped[list["MessageModel"]] = relationship(
         lazy="selectin",

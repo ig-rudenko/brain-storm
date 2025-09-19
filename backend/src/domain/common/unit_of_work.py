@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from ..agents.repository import AgentRepository
 from ..dialogs.repository import DialogRepository
 from ..messages.repository import MessageRepository
+from ..pipelines.repository import PipelineRepository
 from ..users.repository import UserRepository
 
 
@@ -13,6 +14,7 @@ class UnitOfWork(ABC):
     users: "UserRepository"
     dialogs: "DialogRepository"
     messages: "MessageRepository"
+    pipelines: "PipelineRepository"
 
     @abstractmethod
     async def __aenter__(self): ...

@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from src.domain.agents.entities import Agent
 from src.domain.dialogs.entities import Dialog
@@ -6,20 +7,13 @@ from src.domain.messages.entities import Message
 from src.domain.users.entities import User
 
 
-def start_dialog(user: User, agents: list[Agent], name: str) -> Dialog:
+def start_dialog(*, user: User, pipeline_id: UUID, name: str) -> Dialog:
     """Создать новый разговор между пользователем и агентами."""
     if not user.is_active:
         raise ValueError("Inactive user cannot start dialog")
 
-    if not agents:
-        raise ValueError("Dialog must have at least one agent")
-
-    conv = Dialog.create(name=name, user_id=user.id)
-
-    for agent in agents:
-        conv.add_agent(agent)
-
-    return conv
+    dialog = Dialog.create(name=name, user_id=user.id, pipeline_id=pipeline_id)
+    return dialog
 
 
 def send_message(

@@ -9,10 +9,12 @@ class Settings(BaseSettings):
     jwt_refresh_token_expire_days: int = 30
 
     openai_api_key: str = "sk-..."
-    openai_model_name: str = "gpt-4o-mini"
+    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = "https://api.openai.com/v1"
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()

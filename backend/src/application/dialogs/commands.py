@@ -7,7 +7,7 @@ from src.domain.messages.entities import AuthorType
 
 class StartDialogCommand(BaseModel):
     name: str
-    agent_ids: list[UUID]
+    pipeline_id: UUID
 
 
 class SendMessageCommand(BaseModel):

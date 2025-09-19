@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.messages.entities import Message
 from src.domain.messages.repository import MessageRepository
 from src.infrastructure.db.models import MessageModel
+
 from .mixins import SqlAlchemyRepositoryMixin
 
 

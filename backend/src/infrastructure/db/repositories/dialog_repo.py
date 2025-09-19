@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.agents.entities import Agent
 from src.domain.dialogs.entities import Dialog
 from src.domain.dialogs.repository import DialogRepository
-from src.infrastructure.db.models import AgentModel, DialogModel
+from src.infrastructure.db.models import DialogModel
+
 from .mixins import SqlAlchemyRepositoryMixin
 
 
@@ -31,12 +31,8 @@ class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
             id=dialog.id,
             name=dialog.name,
             user_id=dialog.user_id,
+            pipeline_id=dialog.pipeline_id,
         )
-        # связываем агентов через many-to-many
-        if dialog.agents:
-            agents = await self.session.execute(select(AgentModel).where(AgentModel.id.in_(dialog.agents)))
-            model.agents = list(agents.scalars().all())
-
         self.session.add(model)
         await self._flush_changes()
         await self.session.refresh(model)
@@ -48,14 +44,6 @@ class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
         model = result.scalar_one_or_none()
         if model is not None:
             model.name = dialog.name
-
-            # обновляем many-to-many связи с агентами
-            if dialog.agents is not None:
-                agents = await self.session.execute(
-                    select(AgentModel).where(AgentModel.id.in_(dialog.agents))
-                )
-                model.agents = list(agents.scalars().all())
-
             await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
@@ -74,13 +62,5 @@ class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
             id=model.id,
             name=model.name,
             user_id=model.user_id,
-            agents=[
-                Agent.create(
-                    name=agent.name,
-                    description=agent.description,
-                    prompt=agent.prompt,
-                    temperature=agent.temperature,
-                )
-                for agent in model.agents
-            ],
+            pipeline_id=model.pipeline_id,
         )

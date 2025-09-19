@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.agents.entities import Agent
 from src.domain.agents.repository import AgentRepository
 from src.infrastructure.db.models import AgentModel
+
 from .mixins import SqlAlchemyRepositoryMixin
 
 

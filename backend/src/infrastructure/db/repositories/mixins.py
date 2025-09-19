@@ -4,7 +4,7 @@ from typing import Protocol
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.common.exceptions import UniqueError, RepositoryError, DomainError
+from src.domain.common.exceptions import DomainError, RepositoryError, UniqueError
 
 
 class HasAsyncSession(Protocol):

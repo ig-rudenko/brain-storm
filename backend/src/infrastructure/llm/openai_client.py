@@ -8,10 +8,10 @@ from src.domain.messages.entities import AuthorType, Message
 
 
 class OpenAIChatClient(AgentLLMClient):
-    def __init__(self, api_key: str, model: ChatModel):
+    def __init__(self, api_key: str, model: ChatModel, base_url: str | None = None) -> None:
         self._api_key: str = api_key
         self.model: ChatModel = model
-        self.client = AsyncOpenAI(api_key=self._api_key)
+        self.client = AsyncOpenAI(api_key=self._api_key, base_url=base_url)
 
     async def generate(self, system_prompt: str, messages: list[Message], **kwargs: Any) -> str:
         context = [{"role": "system", "content": system_prompt}]
@@ -20,6 +20,13 @@ class OpenAIChatClient(AgentLLMClient):
                 context.append({"role": "user", "content": message.text})
             elif message.author_type == AuthorType.AGENT:
                 context.append({"role": "assistant", "content": message.text})
+
+        print("\n")
+        print("*" * 200)
+        for message in context:
+            print(message)
+        print("*" * 200)
+        print("\n")
 
         resp = await self.client.chat.completions.create(model=self.model, messages=context, **kwargs)
         return resp.choices[0].message.content.strip()

@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class CreateDialogSchema(BaseModel):
-    agents: list[UUID]
+    pipeline_id: UUID
     name: str = Field(..., min_length=1, max_length=150)
 
 
