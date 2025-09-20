@@ -1,10 +1,12 @@
 from uuid import UUID
 
+from src.domain.agents.entities import Agent
+from src.domain.common.exceptions import ValidationError
+from src.domain.common.unit_of_work import UnitOfWork
 from src.domain.dialogs.services import send_message, start_dialog
+from src.domain.messages.entities import AuthorType, Message
+from src.domain.users.entities import User
 
-from ...domain.common.exceptions import ValidationError
-from ...domain.common.unit_of_work import UnitOfWork
-from ...domain.messages.entities import AuthorType, Message
 from ..messages.dto import MessageDTO
 from ..services import AgentLLMClient
 from .commands import SendMessageCommand, StartDialogCommand
@@ -38,7 +40,7 @@ class DialogHandler:
                 raise ValidationError(f"Dialog with id {cmd.dialog_id} not found")
 
             if cmd.author_type == AuthorType.AGENT:
-                sender = await self.uow.agents.get_by_id(cmd.author_id)
+                sender: User | Agent | None = await self.uow.agents.get_by_id(cmd.author_id)
             if cmd.author_type == AuthorType.USER:
                 sender = await self.uow.users.get_by_id(cmd.author_id)
             else:

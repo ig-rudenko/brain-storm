@@ -1,8 +1,8 @@
 """0001_init
 
-Revision ID: e653f72a3b49
+Revision ID: 14a80bca8421
 Revises:
-Create Date: 2025-09-18 17:09:48.802943
+Create Date: 2025-09-21 00:02:38.262561
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "e653f72a3b49"
+revision: str = "14a80bca8421"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -35,6 +35,24 @@ def upgrade() -> None:
         sa.Column("created_at", advanced_alchemy.types.datetime.DateTimeUTC(timezone=True), nullable=False),
         sa.Column("updated_at", advanced_alchemy.types.datetime.DateTimeUTC(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_agents")),
+    )
+    op.create_table(
+        "pipelines",
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("description", sa.Text(), nullable=False),
+        sa.Column(
+            "definition",
+            sa.JSON()
+            .with_variant(postgresql.JSONB(astext_type=Text()), "cockroachdb")
+            .with_variant(advanced_alchemy.types.json.ORA_JSONB(), "oracle")
+            .with_variant(postgresql.JSONB(astext_type=Text()), "postgresql"),
+            nullable=False,
+        ),
+        sa.Column("id", advanced_alchemy.types.guid.GUID(length=16), nullable=False),
+        sa.Column("sa_orm_sentinel", sa.Integer(), nullable=True),
+        sa.Column("created_at", advanced_alchemy.types.datetime.DateTimeUTC(timezone=True), nullable=False),
+        sa.Column("updated_at", advanced_alchemy.types.datetime.DateTimeUTC(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_pipelines")),
     )
     op.create_table(
         "users",
@@ -57,10 +75,17 @@ def upgrade() -> None:
         "dialogs",
         sa.Column("name", sa.String(length=150), nullable=False),
         sa.Column("user_id", advanced_alchemy.types.guid.GUID(length=16), nullable=False),
+        sa.Column("pipeline_id", advanced_alchemy.types.guid.GUID(length=16), nullable=False),
         sa.Column("id", advanced_alchemy.types.guid.GUID(length=16), nullable=False),
         sa.Column("sa_orm_sentinel", sa.Integer(), nullable=True),
         sa.Column("created_at", advanced_alchemy.types.datetime.DateTimeUTC(timezone=True), nullable=False),
         sa.Column("updated_at", advanced_alchemy.types.datetime.DateTimeUTC(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["pipeline_id"],
+            ["pipelines.id"],
+            name=op.f("fk_dialogs_pipeline_id_pipelines"),
+            ondelete="RESTRICT",
+        ),
         sa.ForeignKeyConstraint(
             ["user_id"], ["users.id"], name=op.f("fk_dialogs_user_id_users"), ondelete="RESTRICT"
         ),
@@ -115,5 +140,6 @@ def downgrade() -> None:
     op.drop_table("agents_dialogs")
     op.drop_table("dialogs")
     op.drop_table("users")
+    op.drop_table("pipelines")
     op.drop_table("agents")
     # ### end Alembic commands ###

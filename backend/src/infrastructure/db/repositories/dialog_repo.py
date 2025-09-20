@@ -47,6 +47,7 @@ class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
             await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
+        return None
 
     async def delete(self, dialog_id: UUID) -> None:
         stmt = select(DialogModel).where(DialogModel.id == dialog_id)
@@ -55,6 +56,7 @@ class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
         if model is not None:
             await self.session.delete(model)
             await self._flush_changes()
+        return None
 
     @staticmethod
     def _to_domain(model: DialogModel) -> Dialog:

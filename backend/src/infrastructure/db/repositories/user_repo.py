@@ -68,6 +68,7 @@ class SqlAlchemyUserRepository(UserRepository, SqlAlchemyRepositoryMixin):
             await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
+        return None
 
     async def delete(self, user_id: UUID) -> None:
         stmt = select(UserModel).where(UserModel.id == user_id)

@@ -4,6 +4,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.dialogs.handlers import DialogHandler
+from src.application.pipelines.handlers import PipelineHandler
 from src.application.services import AgentLLMClient
 from src.application.users.handlers import JWTHandler, RegisterUserHandler
 from src.infrastructure.auth.hashers import BcryptPasswordHasher, PasswordHasherProtocol
@@ -57,3 +58,10 @@ def dialog_handler(
     llm: AgentLLMClient = Depends(get_llm),
 ):
     return DialogHandler(uow=SqlAlchemyUnitOfWork(session), llm=llm)
+
+
+def get_pipeline_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+    llm: AgentLLMClient = Depends(get_llm),
+):
+    return PipelineHandler(uow=SqlAlchemyUnitOfWork(session), llm=llm)

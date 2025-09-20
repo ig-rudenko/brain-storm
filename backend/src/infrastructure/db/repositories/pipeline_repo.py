@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,14 +14,19 @@ class SqlAlchemyPipelineRepository(PipelineRepository, SqlAlchemyRepositoryMixin
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get(self, pipeline_id: str) -> Pipeline:
+    async def get_by_id(self, pipeline_id: UUID) -> Pipeline | None:
         stmt = select(PipelineModel).where(PipelineModel.id == pipeline_id)
         result = await self.session.execute(stmt)
-        row = result.scalar_one()
-        return self._to_domain(row)
+        row = result.scalar_one_or_none()
+        return self._to_domain(row) if row else None
 
     async def add(self, pipeline: Pipeline) -> Pipeline:
-        model = PipelineModel(id=pipeline.id, name=pipeline.name, definition=pipeline.root.model_dump())
+        model = PipelineModel(
+            id=pipeline.id,
+            name=pipeline.name,
+            description=pipeline.description,
+            definition=pipeline.root.model_dump(mode="json"),
+        )
         self.session.add(model)
         await self._flush_changes()
         await self.session.refresh(model)
@@ -30,11 +37,12 @@ class SqlAlchemyPipelineRepository(PipelineRepository, SqlAlchemyRepositoryMixin
         result = await self.session.execute(stmt)
         return [self._to_domain(row) for row in result.scalars().all()]
 
-    async def delete(self, pipeline_id: str) -> None:
+    async def delete(self, pipeline_id: UUID) -> None:
         stmt = delete(PipelineModel).where(PipelineModel.id == pipeline_id)
         await self.session.execute(stmt)
         await self._flush_changes()
 
     @staticmethod
     def _to_domain(model: PipelineModel) -> Pipeline:
+        print(model.definition)
         return Pipeline.model_validate({"id": model.id, "name": model.name, "root": model.definition})

@@ -17,6 +17,7 @@ class SqlAlchemyRepositoryMixin(HasAsyncSession):
         try:
             await self.session.flush()
         except IntegrityError as exc:
+            print(exc)
             raise self._parse_error(exc) from exc
 
     @staticmethod

@@ -36,7 +36,7 @@ class User:
         password_hash = password_hash.strip()
         if not username or not email or not password_hash:
             raise ValidationError("Username, email and password_hash cannot be empty")
-        return User(
+        return cls(
             id=uuid4(),
             username=username,
             email=email,

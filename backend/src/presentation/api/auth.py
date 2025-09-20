@@ -26,6 +26,8 @@ async def get_current_user(
 
     try:
         user = await get_user_by_token(token, token_service=token_service, uow=uow)
+        if not user.is_active:
+            raise HTTPException(status_code=401, detail="Inactive user")
     except (ValueError, ValidationError) as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     return user

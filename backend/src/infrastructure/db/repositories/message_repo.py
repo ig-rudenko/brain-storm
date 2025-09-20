@@ -32,18 +32,17 @@ class SqlAlchemyMessageRepository(MessageRepository, SqlAlchemyRepositoryMixin):
         return [self._to_domain(r) for r in result.scalars().all()]
 
     async def add(self, message: Message) -> Message:
-        model = MessageModel(
-            id=message.id,
-            text=message.text,
-            dialog_id=message.dialog_id,
-            author_id=message.author_id,
-            author_type=message.author_type,
-            meta_data=message.metadata,
-        )
+        model = self._to_model(message)
         self.session.add(model)
         await self._flush_changes()
         await self.session.refresh(model)
         return self._to_domain(model)
+
+    async def add_many(self, messages: list[Message]) -> list[Message]:
+        for message in messages:
+            self.session.add(self._to_model(message))
+        await self._flush_changes()
+        return messages
 
     async def update(self, message: Message) -> Message | None:
         stmt = select(MessageModel).where(MessageModel.id == message.id)
@@ -54,6 +53,7 @@ class SqlAlchemyMessageRepository(MessageRepository, SqlAlchemyRepositoryMixin):
             await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
+        return None
 
     async def delete(self, message_id: UUID) -> None:
         stmt = select(MessageModel).where(MessageModel.id == message_id)
@@ -72,4 +72,15 @@ class SqlAlchemyMessageRepository(MessageRepository, SqlAlchemyRepositoryMixin):
             author_id=model.author_id,
             author_type=model.author_type,
             metadata=model.meta_data,
+        )
+
+    @staticmethod
+    def _to_model(domain: Message) -> MessageModel:
+        return MessageModel(
+            id=domain.id,
+            text=domain.text,
+            dialog_id=domain.dialog_id,
+            author_id=domain.author_id,
+            author_type=domain.author_type,
+            meta_data=domain.metadata,
         )

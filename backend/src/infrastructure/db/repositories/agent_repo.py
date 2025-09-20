@@ -25,6 +25,11 @@ class SqlAlchemyAgentRepository(AgentRepository, SqlAlchemyRepositoryMixin):
         result = await self.session.execute(stmt)
         return [self._to_domain(r) for r in result.scalars().all()]
 
+    async def get_many(self, agent_ids: list[UUID]) -> list[Agent]:
+        stmt = select(AgentModel).where(AgentModel.id.in_(agent_ids))
+        result = await self.session.execute(stmt)
+        return [self._to_domain(r) for r in result.scalars().all()]
+
     async def add(self, agent: Agent) -> Agent:
         model = AgentModel(
             id=agent.id,
@@ -50,6 +55,7 @@ class SqlAlchemyAgentRepository(AgentRepository, SqlAlchemyRepositoryMixin):
             await self._flush_changes()
             await self.session.refresh(model)
             return self._to_domain(model)
+        return None
 
     async def delete(self, agent_id: UUID) -> None:
         stmt = select(AgentModel).where(AgentModel.id == agent_id)

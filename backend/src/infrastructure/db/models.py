@@ -19,11 +19,7 @@ class UserModel(UUIDAuditBase):
     is_superuser: Mapped[bool] = mapped_column(server_default=func.false())
     is_active: Mapped[bool] = mapped_column(server_default=func.true())
 
-    dialogs: Mapped[list["DialogModel"]] = relationship(
-        lazy="selectin",
-        back_populates="user",
-        viewonly=True,
-    )
+    dialogs: Mapped[list["DialogModel"]] = relationship(back_populates="user", viewonly=True)
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -62,14 +58,8 @@ class DialogModel(UUIDAuditBase):
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     pipeline_id: Mapped[UUID] = mapped_column(ForeignKey("pipelines.id", ondelete="RESTRICT"))
 
-    user: Mapped[UserModel] = relationship(
-        lazy="joined", back_populates="dialogs", innerjoin=True, viewonly=True
-    )
-    messages: Mapped[list["MessageModel"]] = relationship(
-        lazy="selectin",
-        back_populates="dialog",
-        viewonly=True,
-    )
+    user: Mapped[UserModel] = relationship(back_populates="dialogs", innerjoin=True, viewonly=True)
+    messages: Mapped[list["MessageModel"]] = relationship(back_populates="dialog", viewonly=True)
 
 
 class MessageModel(UUIDAuditBase):
@@ -82,8 +72,4 @@ class MessageModel(UUIDAuditBase):
     author_type: Mapped[AuthorType]
     meta_data: Mapped[dict]
 
-    dialog: Mapped[DialogModel] = relationship(
-        lazy="joined",
-        back_populates="messages",
-        innerjoin=True,
-    )
+    dialog: Mapped[DialogModel] = relationship(back_populates="messages", innerjoin=True)

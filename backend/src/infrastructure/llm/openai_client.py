@@ -1,6 +1,7 @@
 from typing import Any
 
 from openai import AsyncOpenAI
+from openai.resources.chat.completions.completions import ChatCompletionMessageParam
 from openai.types.shared.chat_model import ChatModel
 
 from src.application.services import AgentLLMClient
@@ -14,7 +15,7 @@ class OpenAIChatClient(AgentLLMClient):
         self.client = AsyncOpenAI(api_key=self._api_key, base_url=base_url)
 
     async def generate(self, system_prompt: str, messages: list[Message], **kwargs: Any) -> str:
-        context = [{"role": "system", "content": system_prompt}]
+        context: list[ChatCompletionMessageParam] = [{"role": "system", "content": system_prompt}]
         for message in messages:
             if message.author_type == AuthorType.USER:
                 context.append({"role": "user", "content": message.text})
@@ -23,10 +24,10 @@ class OpenAIChatClient(AgentLLMClient):
 
         print("\n")
         print("*" * 200)
-        for message in context:
+        for message in context:  # type: ignore
             print(message)
         print("*" * 200)
         print("\n")
 
         resp = await self.client.chat.completions.create(model=self.model, messages=context, **kwargs)
-        return resp.choices[0].message.content.strip()
+        return (resp.choices[0].message.content or "").strip()

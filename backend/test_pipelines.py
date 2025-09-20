@@ -9,6 +9,9 @@ from src.domain.pipelines.entities import Pipeline
 from src.infrastructure.llm.openai_client import OpenAIChatClient
 from src.infrastructure.pipelines.executor import PipelineExecutor
 from src.infrastructure.settings import settings
+from src.presentation.api.schemas.pipelines import (
+    PipelineReadSchema,
+)
 
 agents = [
     Agent.create(
@@ -68,29 +71,35 @@ pipeline_mixed = {
                 "nodes": [
                     {"type": "agent", "agent_id": agents[0].id},
                     {"type": "agent", "agent_id": agents[1].id},
-                    {"type": "agent", "agent_id": agents[2].id},
                 ],
             },
             {"type": "agent", "agent_id": agents[3].id},
         ],
     },
 }
+print(pipeline_mixed)
+
+pm = Pipeline.model_validate(pipeline_mixed)
+print(pm)
+print(PipelineReadSchema.model_validate(pm.model_dump()))
 
 
 class TestAgentLLMClient(AgentLLMClient):
 
     async def generate(self, system_prompt: str, messages: list[Message], **kwargs: Any) -> str:
-        return "New message"
+        return system_prompt + "New message"
 
 
 async def test_pipeline():
+    openai_llm_client = OpenAIChatClient(
+        settings.openai_api_key, settings.openai_model, base_url=settings.openai_base_url
+    )
+    test_agent_llm_client = TestAgentLLMClient()
     executor = PipelineExecutor(
         dialog_id=uuid4(),
         pipeline=Pipeline.model_validate(pipeline_mixed),
         agents=agents,
-        llm_client=OpenAIChatClient(
-            settings.openai_api_key, settings.openai_model, base_url=settings.openai_base_url
-        ),
+        llm_client=test_agent_llm_client,
     )
     messages = await executor.run(
         user_id=uuid4(),
@@ -102,6 +111,12 @@ async def test_pipeline():
     print("=" * 200)
     for message in messages:
         print(message.text)
+        print("-" * 200)
+
+    print("=" * 200)
+    print("=" * 200)
+    for message in executor.generated_messages:
+        print(message)
         print("-" * 200)
 
 

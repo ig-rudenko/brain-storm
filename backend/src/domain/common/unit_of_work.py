@@ -10,11 +10,25 @@ from ..users.repository import UserRepository
 class UnitOfWork(ABC):
     """Контракт для Unit of Work."""
 
-    agents: "AgentRepository"
-    users: "UserRepository"
-    dialogs: "DialogRepository"
-    messages: "MessageRepository"
-    pipelines: "PipelineRepository"
+    @property
+    @abstractmethod
+    def agents(self) -> AgentRepository: ...
+
+    @property
+    @abstractmethod
+    def users(self) -> UserRepository: ...
+
+    @property
+    @abstractmethod
+    def dialogs(self) -> DialogRepository: ...
+
+    @property
+    @abstractmethod
+    def messages(self) -> MessageRepository: ...
+
+    @property
+    @abstractmethod
+    def pipelines(self) -> PipelineRepository: ...
 
     @abstractmethod
     async def __aenter__(self): ...

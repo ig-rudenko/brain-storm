@@ -55,7 +55,9 @@ class DatabaseSessionManager:
 
     @property
     def session_maker(self) -> async_sessionmaker[AsyncSession]:
-        return self._session_maker
+        if self._session_maker is not None:
+            return self._session_maker
+        raise IOError("DatabaseSessionManager is not initialized.")
 
     async def close(self) -> None:
         """Закрывает соединение с базой данных."""

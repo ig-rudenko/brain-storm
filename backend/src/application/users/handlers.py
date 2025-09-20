@@ -66,4 +66,6 @@ class JWTHandler:
     async def get_user_by_token(self, token: str) -> UserDTO:
         user_id = self.token_service.get_user_id(token, "access")
         user = await self.uow.users.get_by_id(user_id)
+        if user is None:
+            raise ValueError("Invalid token. Please, log in again to get a new token")
         return get_dto(user)
