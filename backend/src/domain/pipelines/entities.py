@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Literal, Union
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 
 class AgentNode(BaseModel):
@@ -59,3 +59,19 @@ class Pipeline(BaseModel):
             for node in node.nodes:
                 agent_ids.extend(self._get_agents_id(node))
         return agent_ids
+
+    def patch(self, **kwargs):
+        """Частичное обновление объекта"""
+        if name := kwargs.get("name"):
+            self.name = str(name)
+
+        if description := kwargs.get("description"):
+            self.description = str(description)
+
+        if root := kwargs.get("root"):
+            for node in (AgentNode, SequenceNode, ParallelNode, TransformNode):
+                try:
+                    self.root = node.model_validate(root)
+                    break
+                except ValidationError:
+                    pass

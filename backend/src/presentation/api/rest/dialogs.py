@@ -5,9 +5,9 @@ from src.application.dialogs.handlers import DialogHandler
 from src.application.users.dto import UserDTO
 from src.domain.common.exceptions import ValidationError
 
-from ..auth import get_current_user
-from ..dependencies import get_dialog_handler
-from ..schemas.dialogs import CreateDialogSchema, DialogSchema
+from src.presentation.api.auth import get_current_user
+from src.presentation.api.dependencies import get_dialog_handler
+from src.presentation.api.schemas.dialogs import CreateDialogSchema, DialogSchema
 
 router = APIRouter(prefix="/dialogs", tags=["dialogs"])
 

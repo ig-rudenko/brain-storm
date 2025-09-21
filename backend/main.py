@@ -4,10 +4,11 @@ from fastapi import FastAPI
 
 from src.infrastructure.db.base import db_manager
 from src.infrastructure.settings import settings
-from src.presentation.api.controllers.auth import router as auth_router
-from src.presentation.api.controllers.dialogs import router as dialogs_router
-from src.presentation.api.controllers.pipelines import router as pipelines_router
-from src.presentation.api.controllers.agents import router as agents_router
+from src.presentation.api.rest.auth import router as auth_rest_router
+from src.presentation.api.rest.dialogs import router as dialogs_rest_router
+from src.presentation.api.rpc.pipelines import router as pipelines_rpc_router
+from src.presentation.api.rest.pipelines import router as pipelines_rest_router
+from src.presentation.api.rest.agents import router as agents_rest_router
 
 
 @asynccontextmanager
@@ -21,10 +22,14 @@ async def startup(app_instance: FastAPI):
 
 app = FastAPI(lifespan=startup)
 
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(dialogs_router, prefix="/api/v1")
-app.include_router(pipelines_router, prefix="/api/v1")
-app.include_router(agents_router, prefix="/api/v1")
+# RPC API
+app.include_router(pipelines_rpc_router, prefix="/api/v1/rpc")
+
+# REST API
+app.include_router(auth_rest_router, prefix="/api/v1")
+app.include_router(dialogs_rest_router, prefix="/api/v1")
+app.include_router(agents_rest_router, prefix="/api/v1")
+app.include_router(pipelines_rest_router, prefix="/api/v1")
 
 
 @app.get("/ping", tags=["health"])

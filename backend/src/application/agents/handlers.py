@@ -23,10 +23,15 @@ class AgentCommandHandler:
             prompt=cmd.prompt,
             temperature=cmd.temperature,
         )
-        await self.uow.agents.add(agent)
+        async with self.uow:
+            await self.uow.agents.add(agent)
         return agent
 
-    async def handle_update(self, cmd: UpdateAgentPromptCommand) -> None:
+    async def handle_get(self, agent_id: UUID) -> Agent:
+        agent = await self.uow.agents.get_by_id(agent_id)
+        return agent
+
+    async def handle_update(self, cmd: UpdateAgentPromptCommand) -> Agent:
         agent = Agent(
             id=cmd.agent_id,
             prompt=cmd.prompt,
@@ -36,17 +41,14 @@ class AgentCommandHandler:
         )
         async with self.uow:
             updated_agent = await self.uow.agents.update(agent)
-        if updated_agent is None:
-            raise ValueError(f"Agent with id {cmd.agent_id} not found.")
+        return updated_agent
 
-    async def handle_patch(self, cmd: PatchAgentPromptCommand) -> None:
+    async def handle_patch(self, cmd: PatchAgentPromptCommand) -> Agent:
         agent = await self.uow.agents.get_by_id(cmd.agent_id)
-        if agent is None:
-            raise ValueError(f"Agent with id {cmd.agent_id} not found.")
-
         agent.patch(**cmd.model_dump())
         async with self.uow:
             updated_agent = await self.uow.agents.update(agent)
+        return updated_agent
 
     async def handle_delete(self, agent_id: UUID) -> None:
         async with self.uow:
