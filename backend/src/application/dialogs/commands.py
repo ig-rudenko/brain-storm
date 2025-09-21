@@ -1,16 +1,18 @@
+from dataclasses import dataclass
 from uuid import UUID
-
-from pydantic import BaseModel
 
 from src.domain.messages.entities import AuthorType
 
 
-class StartDialogCommand(BaseModel):
+@dataclass(slots=True, frozen=True, kw_only=True)
+class StartDialogCommand:
+    user_id: UUID
     name: str
     pipeline_id: UUID
 
 
-class SendMessageCommand(BaseModel):
+@dataclass(slots=True, frozen=True, kw_only=True)
+class SendMessageCommand:
     dialog_id: UUID
     author_id: UUID
     author_type: AuthorType

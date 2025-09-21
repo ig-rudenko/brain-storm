@@ -19,6 +19,12 @@ class UniqueError(DomainError):
         self.field = field
 
 
+class PermissionDeniedError(DomainError): ...
+
+
+class InvalidPipelineError(DomainError): ...
+
+
 class RepositoryError(DomainError):
     """Базовое исключение репозитория."""
 

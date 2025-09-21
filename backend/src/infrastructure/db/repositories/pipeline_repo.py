@@ -10,14 +10,13 @@ from src.domain.pipelines.entities import Pipeline
 from src.domain.pipelines.repository import PipelineRepository
 
 from ..models import PipelineModel
-from .mixins import SqlAlchemyRepositoryMixin
 
 
 class SQLPipelineRepository(SQLAlchemyAsyncRepository[PipelineModel]):
     model_type = PipelineModel
 
 
-class SqlAlchemyPipelineRepository(PipelineRepository, SqlAlchemyRepositoryMixin):
+class SqlAlchemyPipelineRepository(PipelineRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
         self._repo = SQLPipelineRepository(session=session, auto_commit=False, auto_refresh=True)

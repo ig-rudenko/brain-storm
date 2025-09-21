@@ -3,8 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.application.users.commands import LoginUserCommand, RegisterUserCommand
 from src.application.users.handlers import JWTHandler, RegisterUserHandler
 from src.domain.common.exceptions import UniqueError
-
-from src.presentation.api.dependencies import get_register_handler, get_token_auth_handler
+from src.presentation.api.dependencies import (
+    get_register_handler,
+    get_token_auth_handler,
+)
 from src.presentation.api.schemas.token import OneTokenSchema, TokenPairSchema
 from src.presentation.api.schemas.user import RegisterUserSchema, UserSchema
 

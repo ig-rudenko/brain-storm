@@ -4,11 +4,11 @@ from fastapi import FastAPI
 
 from src.infrastructure.db.base import db_manager
 from src.infrastructure.settings import settings
+from src.presentation.api.rest.agents import router as agents_rest_router
 from src.presentation.api.rest.auth import router as auth_rest_router
 from src.presentation.api.rest.dialogs import router as dialogs_rest_router
-from src.presentation.api.rpc.pipelines import router as pipelines_rpc_router
 from src.presentation.api.rest.pipelines import router as pipelines_rest_router
-from src.presentation.api.rest.agents import router as agents_rest_router
+from src.presentation.api.rpc.pipelines import router as pipelines_rpc_router
 
 
 @asynccontextmanager

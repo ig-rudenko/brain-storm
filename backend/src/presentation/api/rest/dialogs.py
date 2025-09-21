@@ -4,7 +4,6 @@ from src.application.dialogs.commands import StartDialogCommand
 from src.application.dialogs.handlers import DialogHandler
 from src.application.users.dto import UserDTO
 from src.domain.common.exceptions import ValidationError
-
 from src.presentation.api.auth import get_current_user
 from src.presentation.api.dependencies import get_dialog_handler
 from src.presentation.api.schemas.dialogs import CreateDialogSchema, DialogSchema
@@ -20,7 +19,7 @@ async def create_dialog(
 ):
     try:
         return await handler.handle_start_dialog(
-            user_id=user.id, cmd=StartDialogCommand(name=data.name, pipeline_id=data.pipeline_id)
+            cmd=StartDialogCommand(user_id=user.id, name=data.name, pipeline_id=data.pipeline_id)
         )
     except ValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

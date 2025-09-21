@@ -10,14 +10,12 @@ from src.domain.messages.entities import Message
 from src.domain.messages.repository import MessageRepository
 from src.infrastructure.db.models import MessageModel
 
-from .mixins import SqlAlchemyRepositoryMixin
-
 
 class SQLMessageRepository(SQLAlchemyAsyncRepository[MessageModel]):
     model_type = MessageModel
 
 
-class SqlAlchemyMessageRepository(MessageRepository, SqlAlchemyRepositoryMixin):
+class SqlAlchemyMessageRepository(MessageRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
         self._repo = SQLMessageRepository(session=session, auto_commit=False, auto_refresh=True)

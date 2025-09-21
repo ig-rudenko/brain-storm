@@ -10,14 +10,12 @@ from src.domain.users.entities import User
 from src.domain.users.repository import UserRepository
 from src.infrastructure.db.models import UserModel
 
-from .mixins import SqlAlchemyRepositoryMixin
-
 
 class SQLUserRepository(SQLAlchemyAsyncRepository[UserModel]):
     model_type = UserModel
 
 
-class SqlAlchemyUserRepository(UserRepository, SqlAlchemyRepositoryMixin):
+class SqlAlchemyUserRepository(UserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
         self._repo = SQLUserRepository(session=session, auto_commit=False, auto_refresh=True)

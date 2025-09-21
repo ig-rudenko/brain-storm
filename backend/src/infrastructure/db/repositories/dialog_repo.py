@@ -10,14 +10,12 @@ from src.domain.dialogs.entities import Dialog
 from src.domain.dialogs.repository import DialogRepository
 from src.infrastructure.db.models import DialogModel
 
-from .mixins import SqlAlchemyRepositoryMixin
-
 
 class SQLDialogRepository(SQLAlchemyAsyncRepository[DialogModel]):
     model_type = DialogModel
 
 
-class SqlAlchemyDialogRepository(DialogRepository, SqlAlchemyRepositoryMixin):
+class SqlAlchemyDialogRepository(DialogRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
         self._repo = SQLDialogRepository(session=session, auto_commit=False, auto_refresh=True)

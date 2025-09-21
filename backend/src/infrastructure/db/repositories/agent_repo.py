@@ -10,14 +10,12 @@ from src.domain.agents.repository import AgentRepository
 from src.domain.common.exceptions import ObjectNotFoundError
 from src.infrastructure.db.models import AgentModel
 
-from .mixins import SqlAlchemyRepositoryMixin
-
 
 class SQLAgentRepository(SQLAlchemyAsyncRepository[AgentModel]):
     model_type = AgentModel
 
 
-class SqlAlchemyAgentRepository(AgentRepository, SqlAlchemyRepositoryMixin):
+class SqlAlchemyAgentRepository(AgentRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
         self._repo = SQLAgentRepository(session=session, auto_commit=False, auto_refresh=True)

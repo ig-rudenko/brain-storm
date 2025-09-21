@@ -6,6 +6,8 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, ValidationError
 
+from src.domain.common.exceptions import InvalidPipelineError, ObjectNotFoundError
+
 
 class AgentNode(BaseModel):
     id: UUID = Field(default_factory=uuid4)
@@ -75,3 +77,11 @@ class Pipeline(BaseModel):
                     break
                 except ValidationError:
                     pass
+
+    def validate_agents(self, existing_agents: list[UUID]) -> None:
+        if not self.root:
+            raise InvalidPipelineError("Pipeline must have a root node")
+
+        missing = [aid for aid in self.get_agent_ids() if aid not in existing_agents]
+        if missing:
+            raise ObjectNotFoundError(f"Agents not found: {missing}")
