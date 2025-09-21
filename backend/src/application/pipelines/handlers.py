@@ -19,16 +19,12 @@ class PipelineHandler:
     async def handle_run_pipeline(self, cmd: RunPipelineCommand) -> list[MessageDTO]:
         async with self.uow:
             pipeline = await self.uow.pipelines.get_by_id(cmd.pipeline_id)
-            if pipeline is None:
-                raise ValueError(f"Pipeline with id {cmd.pipeline_id} not found")
-
             dialog = await self.uow.dialogs.get_by_id(cmd.dialog_id)
-            if dialog is None:
-                raise ValueError(f"Dialog with id {cmd.dialog_id} not found")
+
             if dialog.user_id != cmd.user_id:
                 raise ValueError(f"User with id {cmd.user_id} is not owner of dialog with id {cmd.dialog_id}")
 
-            messages = await self.uow.messages.get_by_dialog_id(cmd.dialog_id, limit=100, offset=0)
+            messages, _ = await self.uow.messages.get_by_dialog_id(cmd.dialog_id, page=1, page_size=100)
 
             agents_id = pipeline.get_agent_ids()
             agents = await self.uow.agents.get_many(agents_id)

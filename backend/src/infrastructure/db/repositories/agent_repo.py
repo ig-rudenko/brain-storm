@@ -1,69 +1,63 @@
 from uuid import UUID
 
-from sqlalchemy import select
+import advanced_alchemy
+from advanced_alchemy.filters import LimitOffset
+from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.agents.entities import Agent
 from src.domain.agents.repository import AgentRepository
+from src.domain.common.exceptions import ObjectNotFoundError
 from src.infrastructure.db.models import AgentModel
 
 from .mixins import SqlAlchemyRepositoryMixin
 
 
+class SQLAgentRepository(SQLAlchemyAsyncRepository[AgentModel]):
+    model_type = AgentModel
+
+
 class SqlAlchemyAgentRepository(AgentRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
+        self._repo = SQLAgentRepository(session=session, auto_commit=False, auto_refresh=True)
 
-    async def get_by_id(self, agent_id: UUID) -> Agent | None:
-        stmt = select(AgentModel).where(AgentModel.id == agent_id)
-        result = await self.session.execute(stmt)
-        row = result.scalar_one_or_none()
-        return self._to_domain(row) if row else None
-
-    async def list_all(self) -> list[Agent]:
-        stmt = select(AgentModel)
-        result = await self.session.execute(stmt)
-        return [self._to_domain(r) for r in result.scalars().all()]
-
-    async def get_many(self, agent_ids: list[UUID]) -> list[Agent]:
-        stmt = select(AgentModel).where(AgentModel.id.in_(agent_ids))
-        result = await self.session.execute(stmt)
-        return [self._to_domain(r) for r in result.scalars().all()]
-
-    async def add(self, agent: Agent) -> Agent:
-        model = AgentModel(
-            id=agent.id,
-            name=agent.name,
-            description=agent.description,
-            prompt=agent.prompt,
-            temperature=agent.temperature,
-        )
-        self.session.add(model)
-        await self._flush_changes()
-        await self.session.refresh(model)
+    async def get_by_id(self, agent_id: UUID) -> Agent:
+        try:
+            model = await self._repo.get(agent_id)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"Agent with id {agent_id} not found") from exc
         return self._to_domain(model)
 
-    async def update(self, agent: Agent) -> Agent | None:
-        stmt = select(AgentModel).where(AgentModel.id == agent.id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
-        if model is not None:
-            model.name = agent.name
-            model.description = agent.description
-            model.prompt = agent.prompt
-            model.temperature = agent.temperature
-            await self._flush_changes()
-            await self.session.refresh(model)
-            return self._to_domain(model)
-        return None
+    async def get_paginated(self, page: int, page_size: int) -> tuple[list[Agent], int]:
+        offset = (page - 1) * page_size
+        results, total = await self._repo.list_and_count(LimitOffset(offset=offset, limit=page_size))
+        return [self._to_domain(r) for r in results], total
+
+    async def get_many(self, agent_ids: list[UUID]) -> list[Agent]:
+        results = await self._repo.list(AgentModel.id.in_(agent_ids))
+        return [self._to_domain(r) for r in results]
+
+    async def add(self, agent: Agent) -> Agent:
+        model = self._to_model(agent)
+        model = await self._repo.add(model)
+        return self._to_domain(model)
+
+    async def update(self, agent: Agent) -> Agent:
+        model = self._to_model(agent)
+        try:
+            model = await self._repo.update(
+                model, attribute_names=["name", "description", "prompt", "temperature"]
+            )
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"Agent with id {agent.id} not found") from exc
+        return self._to_domain(model)
 
     async def delete(self, agent_id: UUID) -> None:
-        stmt = select(AgentModel).where(AgentModel.id == agent_id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
-        if model is not None:
-            await self.session.delete(model)
-            await self._flush_changes()
+        try:
+            await self._repo.delete(agent_id)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"Agent with id {agent_id} not found") from exc
 
     @staticmethod
     def _to_domain(model: AgentModel) -> Agent:
@@ -73,4 +67,14 @@ class SqlAlchemyAgentRepository(AgentRepository, SqlAlchemyRepositoryMixin):
             description=model.description,
             prompt=model.prompt,
             temperature=model.temperature,
+        )
+
+    @staticmethod
+    def _to_model(agent: Agent) -> AgentModel:
+        return AgentModel(
+            id=agent.id,
+            name=agent.name,
+            description=agent.description,
+            prompt=agent.prompt,
+            temperature=agent.temperature,
         )

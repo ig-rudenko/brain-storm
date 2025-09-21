@@ -6,7 +6,7 @@ from src.application.users.dto import UserDTO
 from src.domain.common.exceptions import ValidationError
 
 from ..auth import get_current_user
-from ..dependencies import dialog_handler
+from ..dependencies import get_dialog_handler
 from ..schemas.dialogs import CreateDialogSchema, DialogSchema
 
 router = APIRouter(prefix="/dialogs", tags=["dialogs"])
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/dialogs", tags=["dialogs"])
 async def create_dialog(
     data: CreateDialogSchema,
     user: UserDTO = Depends(get_current_user),
-    handler: DialogHandler = Depends(dialog_handler),
+    handler: DialogHandler = Depends(get_dialog_handler),
 ):
     try:
         return await handler.handle_start_dialog(

@@ -8,21 +8,18 @@ class DialogRepository(ABC):
     """Интерфейс репозитория для Dialog."""
 
     @abstractmethod
-    async def get_by_id(self, dialog_id: UUID) -> Dialog | None:
-        pass
+    async def get_by_id(self, dialog_id: UUID) -> Dialog: ...
 
     @abstractmethod
-    async def get_user_dialogs(self, user_id: UUID) -> list[Dialog]:
-        pass
+    async def get_user_dialogs(
+        self, user_id: UUID, page: int, page_size: int
+    ) -> tuple[list[Dialog], int]: ...
 
     @abstractmethod
-    async def add(self, dialog: Dialog) -> Dialog:
-        pass
+    async def add(self, dialog: Dialog) -> Dialog: ...
 
     @abstractmethod
-    async def update(self, dialog: Dialog) -> Dialog | None:
-        pass
+    async def update(self, dialog: Dialog) -> Dialog: ...
 
     @abstractmethod
-    async def delete(self, dialog_id: UUID) -> None:
-        pass
+    async def delete(self, dialog_id: UUID) -> None: ...

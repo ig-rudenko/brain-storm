@@ -51,6 +51,8 @@ class DatabaseSessionManager:
         self._session_maker = async_sessionmaker(
             bind=self._engine,
             expire_on_commit=False,
+            autoflush=False,
+            autocommit=False,
         )
 
     @property

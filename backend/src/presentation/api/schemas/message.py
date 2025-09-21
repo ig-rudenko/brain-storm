@@ -16,7 +16,7 @@ class MessageSchema(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.now)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MessagesResponseSchema(BaseModel):

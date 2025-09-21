@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -9,5 +11,16 @@ class CreateAgentCommand(BaseModel):
 
 
 class UpdateAgentPromptCommand(BaseModel):
-    agent_id: str
-    new_prompt: str
+    agent_id: UUID
+    name: str
+    prompt: str
+    description: str
+    temperature: float
+
+
+class PatchAgentPromptCommand(BaseModel):
+    agent_id: UUID
+    name: str | None = None
+    prompt: str | None = None
+    description: str | None = None
+    temperature: float | None = None

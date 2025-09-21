@@ -3,6 +3,7 @@ from functools import cache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.application.agents.handlers import AgentCommandHandler
 from src.application.dialogs.handlers import DialogHandler
 from src.application.pipelines.handlers import PipelineHandler
 from src.application.services import AgentLLMClient
@@ -53,15 +54,21 @@ def get_register_handler(
     return RegisterUserHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher)
 
 
-def dialog_handler(
+def get_agent_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+) -> AgentCommandHandler:
+    return AgentCommandHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_dialog_handler(
     session: AsyncSession = Depends(get_session, use_cache=True),
     llm: AgentLLMClient = Depends(get_llm),
-):
+) -> DialogHandler:
     return DialogHandler(uow=SqlAlchemyUnitOfWork(session), llm=llm)
 
 
 def get_pipeline_handler(
     session: AsyncSession = Depends(get_session, use_cache=True),
     llm: AgentLLMClient = Depends(get_llm),
-):
+) -> PipelineHandler:
     return PipelineHandler(uow=SqlAlchemyUnitOfWork(session), llm=llm)

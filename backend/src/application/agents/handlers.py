@@ -2,15 +2,19 @@ from uuid import UUID
 
 from src.application.services import AgentLLMClient
 from src.domain.agents.entities import Agent
-from src.domain.agents.repository import AgentRepository
+from src.domain.common.unit_of_work import UnitOfWork
 from src.domain.messages.entities import Message
 
-from .commands import CreateAgentCommand, UpdateAgentPromptCommand
+from .commands import (
+    CreateAgentCommand,
+    PatchAgentPromptCommand,
+    UpdateAgentPromptCommand,
+)
 
 
 class AgentCommandHandler:
-    def __init__(self, repo: AgentRepository):
-        self.repo = repo
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
 
     async def handle_create(self, cmd: CreateAgentCommand) -> Agent:
         agent = Agent.create(
@@ -19,16 +23,34 @@ class AgentCommandHandler:
             prompt=cmd.prompt,
             temperature=cmd.temperature,
         )
-        await self.repo.add(agent)
+        await self.uow.agents.add(agent)
         return agent
 
-    async def handle_update_prompt(self, cmd: UpdateAgentPromptCommand) -> None:
-        agent = await self.repo.get_by_id(UUID(cmd.agent_id))
-        if not agent:
-            raise ValueError("Agent not found")
+    async def handle_update(self, cmd: UpdateAgentPromptCommand) -> None:
+        agent = Agent(
+            id=cmd.agent_id,
+            prompt=cmd.prompt,
+            description=cmd.description,
+            name=cmd.name,
+            temperature=cmd.temperature,
+        )
+        async with self.uow:
+            updated_agent = await self.uow.agents.update(agent)
+        if updated_agent is None:
+            raise ValueError(f"Agent with id {cmd.agent_id} not found.")
 
-        agent.update_prompt(cmd.new_prompt)
-        await self.repo.update(agent)
+    async def handle_patch(self, cmd: PatchAgentPromptCommand) -> None:
+        agent = await self.uow.agents.get_by_id(cmd.agent_id)
+        if agent is None:
+            raise ValueError(f"Agent with id {cmd.agent_id} not found.")
+
+        agent.patch(**cmd.model_dump())
+        async with self.uow:
+            updated_agent = await self.uow.agents.update(agent)
+
+    async def handle_delete(self, agent_id: UUID) -> None:
+        async with self.uow:
+            await self.uow.agents.delete(agent_id)
 
 
 class AgentRunner:

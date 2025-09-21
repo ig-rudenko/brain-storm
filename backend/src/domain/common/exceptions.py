@@ -2,24 +2,13 @@ class DomainError(Exception):
     """Базовое исключение доменной логики."""
 
 
-class ValidationError(DomainError):
-    pass
+class ValidationError(DomainError): ...
 
 
-class NotFoundError(DomainError):
-    pass
+class NotFoundError(DomainError): ...
 
 
-class UnauthorizedError(DomainError):
-    pass
-
-
-class AgentUnavailableError(DomainError):
-    pass
-
-
-class RepositoryError(DomainError):
-    pass
+class UnauthorizedError(DomainError): ...
 
 
 class UniqueError(DomainError):
@@ -28,3 +17,11 @@ class UniqueError(DomainError):
         super().__init__(message)
         self.message = message
         self.field = field
+
+
+class RepositoryError(DomainError):
+    """Базовое исключение репозитория."""
+
+
+class ObjectNotFoundError(RepositoryError):
+    """Объект не найден в репозитории."""

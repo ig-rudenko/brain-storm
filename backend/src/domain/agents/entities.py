@@ -32,3 +32,22 @@ class Agent:
         if not new_prompt.strip():
             raise ValidationError("Prompt cannot be empty")
         self.prompt = new_prompt
+
+    def patch(self, **kwargs) -> Self:
+        if temperature := kwargs.get("temperature"):
+            if not isinstance(temperature, (int, float)):
+                raise ValidationError("Temperature must be a number between 0 and 1")
+            if not (0 <= temperature <= 1):
+                raise ValidationError("Temperature must be between 0 and 1")
+            self.temperature = temperature
+        if prompt := kwargs.get("prompt"):
+            if not prompt.strip():
+                raise ValidationError("Prompt cannot be empty")
+            self.prompt = kwargs["prompt"]
+        if name := kwargs.get("name"):
+            if not name.strip():
+                raise ValidationError("Name cannot be empty")
+            self.name = kwargs["name"]
+        if description := kwargs.get("description"):
+            self.description = description.strip()
+        return self

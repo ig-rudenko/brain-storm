@@ -1,8 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import select
+import advanced_alchemy
+from advanced_alchemy.filters import LimitOffset
+from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.domain.common.exceptions import ObjectNotFoundError
 from src.domain.messages.entities import Message
 from src.domain.messages.repository import MessageRepository
 from src.infrastructure.db.models import MessageModel
@@ -10,58 +13,53 @@ from src.infrastructure.db.models import MessageModel
 from .mixins import SqlAlchemyRepositoryMixin
 
 
+class SQLMessageRepository(SQLAlchemyAsyncRepository[MessageModel]):
+    model_type = MessageModel
+
+
 class SqlAlchemyMessageRepository(MessageRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
+        self._repo = SQLMessageRepository(session=session, auto_commit=False, auto_refresh=True)
 
-    async def get_by_id(self, message_id: UUID) -> Message | None:
-        stmt = select(MessageModel).where(MessageModel.id == message_id)
-        result = await self.session.execute(stmt)
-        row = result.scalar_one_or_none()
-        return self._to_domain(row) if row else None
+    async def get_by_id(self, message_id: UUID) -> Message:
+        try:
+            model = await self._repo.get(message_id)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"Message with id {message_id} not found") from exc
+        return self._to_domain(model)
 
-    async def get_by_dialog_id(self, dialog_id: UUID, limit: int = 10, offset: int = 0) -> list[Message]:
-        stmt = (
-            select(MessageModel)
-            .limit(limit)
-            .offset(offset)
-            .where(MessageModel.dialog_id == dialog_id)
-            .order_by(MessageModel.created_at.desc())
+    async def get_by_dialog_id(self, dialog_id: UUID, page: int, page_size: int) -> tuple[list[Message], int]:
+        offset = (page - 1) * page_size
+        results, total = await self._repo.list_and_count(
+            MessageModel.dialog_id == dialog_id, LimitOffset(offset=offset, limit=page_size)
         )
-        result = await self.session.execute(stmt)
-        return [self._to_domain(r) for r in result.scalars().all()]
+        return [self._to_domain(r) for r in results], total
 
     async def add(self, message: Message) -> Message:
         model = self._to_model(message)
-        self.session.add(model)
-        await self._flush_changes()
-        await self.session.refresh(model)
+        model = await self._repo.add(model)
         return self._to_domain(model)
 
     async def add_many(self, messages: list[Message]) -> list[Message]:
-        for message in messages:
-            self.session.add(self._to_model(message))
-        await self._flush_changes()
+        await self._repo.add_many([self._to_model(m) for m in messages])
         return messages
 
-    async def update(self, message: Message) -> Message | None:
-        stmt = select(MessageModel).where(MessageModel.id == message.id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
-        if model is not None:
-            model.text = message.text
-            await self._flush_changes()
-            await self.session.refresh(model)
-            return self._to_domain(model)
-        return None
+    async def update(self, message: Message) -> Message:
+        model = self._to_model(message)
+        try:
+            model = await self._repo.update(
+                model, attribute_names=["text", "dialog_id", "author_id", "author_type", "meta_data"]
+            )
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"Message with id {message.id} not found") from exc
+        return self._to_domain(model)
 
     async def delete(self, message_id: UUID) -> None:
-        stmt = select(MessageModel).where(MessageModel.id == message_id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
-        if model is not None:
-            await self.session.delete(model)
-            await self._flush_changes()
+        try:
+            await self._repo.delete(message_id)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"Message with id {message_id} not found") from exc
 
     @staticmethod
     def _to_domain(model: MessageModel) -> Message:

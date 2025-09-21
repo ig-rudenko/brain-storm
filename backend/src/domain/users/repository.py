@@ -8,29 +8,22 @@ class UserRepository(ABC):
     """Интерфейс репозитория для User."""
 
     @abstractmethod
-    async def get_by_id(self, user_id: UUID) -> User | None:
-        pass
+    async def get_by_id(self, user_id: UUID) -> User: ...
 
     @abstractmethod
-    async def list_all(self) -> list[User]:
-        pass
+    async def get_paginated(self, page: int, page_size: int) -> tuple[list[User], int]: ...
 
     @abstractmethod
-    async def add(self, user: User) -> User:
-        pass
+    async def add(self, user: User) -> User: ...
 
     @abstractmethod
-    async def update(self, user: User) -> User | None:
-        pass
+    async def update(self, user: User) -> User: ...
 
     @abstractmethod
-    async def delete(self, user_id: UUID) -> None:
-        pass
+    async def delete(self, user_id: UUID) -> None: ...
 
     @abstractmethod
-    async def get_by_username(self, username: str) -> User | None:
-        pass
+    async def get_by_username(self, username: str) -> User: ...
 
     @abstractmethod
-    async def get_by_email(self, email: str) -> User | None:
-        pass
+    async def get_by_email(self, email: str) -> User: ...

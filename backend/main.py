@@ -7,6 +7,7 @@ from src.infrastructure.settings import settings
 from src.presentation.api.controllers.auth import router as auth_router
 from src.presentation.api.controllers.dialogs import router as dialogs_router
 from src.presentation.api.controllers.pipelines import router as pipelines_router
+from src.presentation.api.controllers.agents import router as agents_router
 
 
 @asynccontextmanager
@@ -23,6 +24,7 @@ app = FastAPI(lifespan=startup)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(dialogs_router, prefix="/api/v1")
 app.include_router(pipelines_router, prefix="/api/v1")
+app.include_router(agents_router, prefix="/api/v1")
 
 
 @app.get("/ping", tags=["health"])

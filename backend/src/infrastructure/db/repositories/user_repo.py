@@ -1,8 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import select
+import advanced_alchemy
+from advanced_alchemy.filters import LimitOffset
+from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.domain.common.exceptions import ObjectNotFoundError
 from src.domain.users.entities import User
 from src.domain.users.repository import UserRepository
 from src.infrastructure.db.models import UserModel
@@ -10,73 +13,70 @@ from src.infrastructure.db.models import UserModel
 from .mixins import SqlAlchemyRepositoryMixin
 
 
+class SQLUserRepository(SQLAlchemyAsyncRepository[UserModel]):
+    model_type = UserModel
+
+
 class SqlAlchemyUserRepository(UserRepository, SqlAlchemyRepositoryMixin):
     def __init__(self, session: AsyncSession):
         self.session = session
+        self._repo = SQLUserRepository(session=session, auto_commit=False, auto_refresh=True)
 
-    async def get_by_id(self, user_id: UUID) -> User | None:
-        stmt = select(UserModel).where(UserModel.id == user_id)
-        result = await self.session.execute(stmt)
-        row = result.scalar_one_or_none()
-        return self._to_domain(row) if row else None
-
-    async def get_by_username(self, username: str) -> User | None:
-        stmt = select(UserModel).where(UserModel.username == username)
-        result = await self.session.execute(stmt)
-        row = result.scalar_one_or_none()
-        return self._to_domain(row) if row else None
-
-    async def get_by_email(self, email: str) -> User | None:
-        stmt = select(UserModel).where(UserModel.email == email)
-        result = await self.session.execute(stmt)
-        row = result.scalar_one_or_none()
-        return self._to_domain(row) if row else None
-
-    async def list_all(self) -> list[User]:
-        stmt = select(UserModel)
-        result = await self.session.execute(stmt)
-        return [self._to_domain(r) for r in result.scalars().all()]
-
-    async def add(self, user: User) -> User:
-        model = UserModel(
-            id=user.id,
-            username=user.username,
-            password=user.password_hash,
-            email=user.email,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            is_superuser=user.is_superuser,
-            is_active=user.is_active,
-        )
-
-        self.session.add(model)
-        await self._flush_changes()
-        await self.session.refresh(model)
+    async def get_by_id(self, user_id: UUID) -> User:
+        try:
+            model = await self._repo.get(user_id)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"User with id {user_id} not found") from exc
         return self._to_domain(model)
 
-    async def update(self, user: User) -> User | None:
-        stmt = select(UserModel).where(UserModel.id == user.id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
-        if model is not None:
-            model.username = user.username
-            model.password = user.password_hash
-            model.email = user.email
-            model.first_name = user.first_name
-            model.last_name = user.last_name
-            model.is_superuser = user.is_superuser
-            await self._flush_changes()
-            await self.session.refresh(model)
-            return self._to_domain(model)
-        return None
+    async def get_by_username(self, username: str) -> User:
+        try:
+            model = await self._repo.get_one(UserModel.username == username)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"User with username {username} not found") from exc
+        return self._to_domain(model)
+
+    async def get_by_email(self, email: str) -> User:
+        try:
+            model = await self._repo.get_one(UserModel.email == email)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"User with email {email} not found") from exc
+        return self._to_domain(model)
+
+    async def get_paginated(self, page: int, page_size: int) -> tuple[list[User], int]:
+        offset = (page - 1) * page_size
+        results, total = await self._repo.list_and_count(LimitOffset(offset=offset, limit=page_size))
+        return [self._to_domain(r) for r in results], total
+
+    async def add(self, user: User) -> User:
+        model = self._to_model(user)
+        model = await self._repo.add(model)
+        return self._to_domain(model)
+
+    async def update(self, user: User) -> User:
+        model = self._to_model(user)
+        try:
+            model = await self._repo.update(
+                model,
+                attribute_names=[
+                    "username",
+                    "email",
+                    "password_hash",
+                    "first_name",
+                    "last_name",
+                    "is_superuser",
+                    "is_active",
+                ],
+            )
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"User with id {user.id} not found") from exc
+        return self._to_domain(model)
 
     async def delete(self, user_id: UUID) -> None:
-        stmt = select(UserModel).where(UserModel.id == user_id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
-        if model is not None:
-            await self.session.delete(model)
-            await self._flush_changes()
+        try:
+            await self._repo.delete(user_id)
+        except advanced_alchemy.exceptions.NotFoundError as exc:
+            raise ObjectNotFoundError(f"User with id {user_id} not found") from exc
 
     @staticmethod
     def _to_domain(model: UserModel) -> User:
@@ -91,4 +91,19 @@ class SqlAlchemyUserRepository(UserRepository, SqlAlchemyRepositoryMixin):
             is_active=model.is_active,
             created_at=model.created_at,
             updated_at=model.updated_at,
+        )
+
+    @staticmethod
+    def _to_model(user: User) -> UserModel:
+        return UserModel(
+            id=user.id,
+            username=user.username,
+            password=user.password_hash,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            is_superuser=user.is_superuser,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
         )
