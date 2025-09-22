@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.application.users.commands import LoginUserCommand, RegisterUserCommand
 from src.application.users.handlers import JWTHandler, RegisterUserHandler
-from src.domain.common.exceptions import UniqueError
+from src.domain.common.exceptions import (
+    AuthorizationError,
+    ObjectNotFoundError,
+    UniqueError,
+)
 from src.presentation.api.dependencies import (
     get_register_handler,
     get_token_auth_handler,
@@ -18,7 +22,7 @@ async def login(cmd: LoginUserCommand, jwt_handler: JWTHandler = Depends(get_tok
     try:
         token_pair = await jwt_handler.handle_obtain_token(cmd)
         return token_pair
-    except ValueError as e:
+    except (ObjectNotFoundError, AuthorizationError) as e:
         raise HTTPException(status_code=401, detail=str(e))
 
 
@@ -29,7 +33,7 @@ async def refresh_tokens(
     try:
         token_pair = await jwt_handler.handle_refresh_token(token_data.token)
         return token_pair
-    except ValueError as e:
+    except AuthorizationError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
 
@@ -40,7 +44,7 @@ async def verify_access_token(
     try:
         user = await jwt_handler.get_user_by_token(token_data.token)
         return user
-    except ValueError as e:
+    except (ObjectNotFoundError, AuthorizationError) as e:
         raise HTTPException(status_code=401, detail=str(e))
 
 

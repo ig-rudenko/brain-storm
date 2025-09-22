@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from ..agents.repository import AgentRepository
+from ..auth.repository import RefreshTokenRepository
 from ..dialogs.repository import DialogRepository
 from ..messages.repository import MessageRepository
 from ..pipelines.repository import PipelineRepository
@@ -29,6 +30,10 @@ class UnitOfWork(ABC):
     @property
     @abstractmethod
     def pipelines(self) -> PipelineRepository: ...
+
+    @property
+    @abstractmethod
+    def refresh_token(self) -> RefreshTokenRepository: ...
 
     @abstractmethod
     async def __aenter__(self): ...

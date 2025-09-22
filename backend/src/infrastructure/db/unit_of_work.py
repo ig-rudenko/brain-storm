@@ -7,6 +7,9 @@ from src.infrastructure.db.repositories.message_repo import SqlAlchemyMessageRep
 from src.infrastructure.db.repositories.pipeline_repo import (
     SqlAlchemyPipelineRepository,
 )
+from src.infrastructure.db.repositories.refresh_token_repo import (
+    SqlAlchemyRefreshTokenRepository,
+)
 from src.infrastructure.db.repositories.user_repo import SqlAlchemyUserRepository
 
 
@@ -18,6 +21,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         self._dialogs: SqlAlchemyDialogRepository | None = None
         self._messages: SqlAlchemyMessageRepository | None = None
         self._pipelines: SqlAlchemyPipelineRepository | None = None
+        self._refresh_token: SqlAlchemyRefreshTokenRepository | None = None
 
     @property
     def session(self) -> AsyncSession:
@@ -52,6 +56,12 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         if self._pipelines is None:
             self._pipelines = SqlAlchemyPipelineRepository(self._session)
         return self._pipelines
+
+    @property
+    def refresh_token(self) -> SqlAlchemyRefreshTokenRepository:
+        if self._refresh_token is None:
+            self._refresh_token = SqlAlchemyRefreshTokenRepository(self._session)
+        return self._refresh_token
 
     async def __aenter__(self):
         return self

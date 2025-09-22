@@ -1,7 +1,9 @@
+from datetime import datetime
 from uuid import UUID
 
-from advanced_alchemy.base import UUIDAuditBase, orm_registry
-from sqlalchemy import Column, ForeignKey, Integer, String, Table, Text, func
+from advanced_alchemy.base import UUIDAuditBase, UUIDBase, orm_registry
+from advanced_alchemy.types import DateTimeUTC
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.domain.messages.entities import AuthorType
@@ -26,6 +28,16 @@ class UserModel(UUIDAuditBase):
 
     def __str__(self):
         return self.username
+
+
+class RefreshTokenModel(UUIDBase):
+    __tablename__ = "refresh_tokens"
+
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    token_hash: Mapped[str] = mapped_column(String(150), unique=True)
+    issued_at: Mapped[int]
+    expire_at: Mapped[datetime] = mapped_column(DateTimeUTC(timezone=True))
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 agents_dialogs_model = Table(

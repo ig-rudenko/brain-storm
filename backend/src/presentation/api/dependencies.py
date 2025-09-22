@@ -22,7 +22,9 @@ def get_hasher() -> PasswordHasherProtocol:
 
 
 @cache
-def get_jwt_token_service() -> JWTService:
+def get_jwt_token_service(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+) -> JWTService:
     return JWTService(
         secret=settings.jwt_secret,
         access_expiration_minutes=settings.jwt_access_token_expire_minutes,
@@ -40,7 +42,7 @@ def get_llm() -> AgentLLMClient:
 
 
 def get_token_auth_handler(
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_session, use_cache=True),
     hasher: BcryptPasswordHasher = Depends(get_hasher),
     token_service: JWTService = Depends(get_jwt_token_service),
 ) -> JWTHandler:
@@ -48,7 +50,7 @@ def get_token_auth_handler(
 
 
 def get_register_handler(
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_session, use_cache=True),
     hasher: BcryptPasswordHasher = Depends(get_hasher),
 ) -> RegisterUserHandler:
     return RegisterUserHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher)

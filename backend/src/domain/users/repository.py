@@ -14,7 +14,11 @@ class UserRepository(ABC):
     async def get_paginated(self, page: int, page_size: int) -> tuple[list[User], int]: ...
 
     @abstractmethod
-    async def add(self, user: User) -> User: ...
+    async def add(self, user: User) -> User:
+        """
+        Raises:
+            UniqueError: Если пользователь с таким username или email уже существует.
+        """
 
     @abstractmethod
     async def update(self, user: User) -> User: ...

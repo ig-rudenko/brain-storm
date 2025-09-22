@@ -16,3 +16,9 @@ class UserDTO:
 
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class JWTokenDTO:
+    access: str
+    refresh: str

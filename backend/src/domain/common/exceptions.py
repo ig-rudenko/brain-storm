@@ -31,3 +31,15 @@ class RepositoryError(DomainError):
 
 class ObjectNotFoundError(RepositoryError):
     """Объект не найден в репозитории."""
+
+
+class AuthorizationError(DomainError):
+    pass
+
+
+class RefreshTokenRevokedError(AuthorizationError):
+    pass
+
+
+class InvalidTokenError(AuthorizationError):
+    pass
