@@ -15,7 +15,7 @@ class SQLUserRepository(SQLAlchemyAsyncRepository[UserModel]):
 
     @property
     def dialect(self):
-        return self._dialect
+        return self._dialect.name
 
 
 class SqlAlchemyUserRepository(UserRepository):

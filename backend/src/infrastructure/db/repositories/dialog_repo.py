@@ -15,7 +15,7 @@ class SQLDialogRepository(SQLAlchemyAsyncRepository[DialogModel]):
 
     @property
     def dialect(self):
-        return self._dialect
+        return self._dialect.name
 
 
 class SqlAlchemyDialogRepository(DialogRepository):

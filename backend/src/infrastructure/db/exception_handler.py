@@ -60,8 +60,10 @@ def wrap_sqlalchemy_exception(  # noqa: C901, PLR0915
                         matched = match.groupdict()
                         if key == "duplicate_key":
                             verbose_key = matched.get("key", "") or matched.get("columns", "") or "id"
+                            full_part, _, field = verbose_key.partition(".")
                             raise UniqueError(
-                                f"Object with same {verbose_key} already exists", field=verbose_key
+                                f"Object with same {field or full_part} already exists",
+                                field=field or full_part,
                             ) from exc
 
         raise RepositoryError("Integrity error") from exc

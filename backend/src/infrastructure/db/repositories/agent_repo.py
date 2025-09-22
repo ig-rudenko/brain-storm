@@ -15,7 +15,7 @@ class SQLAgentRepository(SQLAlchemyAsyncRepository[AgentModel]):
 
     @property
     def dialect(self):
-        return self._dialect
+        return self._dialect.name
 
 
 class SqlAlchemyAgentRepository(AgentRepository):

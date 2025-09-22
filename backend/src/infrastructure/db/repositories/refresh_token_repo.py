@@ -16,7 +16,7 @@ class SQLRefreshTokenRepository(SQLAlchemyAsyncRepository[RefreshTokenModel]):
 
     @property
     def dialect(self):
-        return self._dialect
+        return self._dialect.name
 
 
 class SqlAlchemyRefreshTokenRepository(RefreshTokenRepository):

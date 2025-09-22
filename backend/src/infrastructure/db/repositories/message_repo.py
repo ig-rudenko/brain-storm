@@ -15,7 +15,7 @@ class SQLMessageRepository(SQLAlchemyAsyncRepository[MessageModel]):
 
     @property
     def dialect(self):
-        return self._dialect
+        return self._dialect.name
 
 
 class SqlAlchemyMessageRepository(MessageRepository):

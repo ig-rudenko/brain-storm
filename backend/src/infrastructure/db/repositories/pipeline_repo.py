@@ -16,7 +16,7 @@ class SQLPipelineRepository(SQLAlchemyAsyncRepository[PipelineModel]):
 
     @property
     def dialect(self):
-        return self._dialect
+        return self._dialect.name
 
 
 class SqlAlchemyPipelineRepository(PipelineRepository):
