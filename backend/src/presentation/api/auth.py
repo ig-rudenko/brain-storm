@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.services import get_user_by_token
 from src.application.users.dto import UserDTO
-from src.domain.common.exceptions import ValidationError
+from src.domain.common.exceptions import ObjectNotFoundError, ValidationError
 from src.infrastructure.auth.token_service import JWTService
 from src.infrastructure.db.base import get_session
 from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
@@ -28,9 +28,25 @@ async def get_current_user(
         user = await get_user_by_token(token, token_service=token_service, uow=uow)
         if not user.is_active:
             raise HTTPException(status_code=401, detail="Inactive user")
-    except (ValueError, ValidationError) as exc:
+    except (ValueError, ValidationError, ObjectNotFoundError) as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     return user
+
+
+async def get_admin_user(
+    token: str = Depends(oauth2_scheme),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+    token_service: JWTService = Depends(get_jwt_token_service),
+) -> UserDTO:
+    uow = SqlAlchemyUnitOfWork(session)
+    try:
+        if user := await get_user_by_token(token, token_service=token_service, uow=uow):
+            if not (user.is_active and user.is_superuser):
+                raise HTTPException(status_code=403, detail="Forbidden")
+            return user
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    except (ValueError, ValidationError, ObjectNotFoundError) as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 async def get_user_or_none(
@@ -51,5 +67,5 @@ async def get_user_or_none(
         try:
             return await get_current_user(token_match.group(1), session, token_service)
         except HTTPException:
-            return None
+            pass
     return None

@@ -11,7 +11,7 @@ from src.presentation.api.schemas.dialogs import CreateDialogSchema, DialogSchem
 router = APIRouter(prefix="/dialogs", tags=["dialogs"])
 
 
-@router.post("", response_model=DialogSchema)
+@router.post("", response_model=DialogSchema, status_code=201)
 async def create_dialog(
     data: CreateDialogSchema,
     user: UserDTO = Depends(get_current_user),

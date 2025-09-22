@@ -8,7 +8,9 @@ from src.application.agents.commands import (
     UpdateAgentPromptCommand,
 )
 from src.application.agents.handlers import AgentCommandHandler
+from src.application.users.dto import UserDTO
 
+from ..auth import get_admin_user
 from ..dependencies import get_agent_handler
 from ..schemas.agents import (
     CreateAgentSchema,
@@ -20,8 +22,12 @@ from ..schemas.agents import (
 router = APIRouter(prefix="/agents", tags=["agents"])
 
 
-@router.post("", response_model=ReadAgentSchema)
-async def create_agent(data: CreateAgentSchema, handler: AgentCommandHandler = Depends(get_agent_handler)):
+@router.post("", response_model=ReadAgentSchema, status_code=201)
+async def create_agent(
+    data: CreateAgentSchema,
+    _: UserDTO = Depends(get_admin_user),
+    handler: AgentCommandHandler = Depends(get_agent_handler),
+):
     agent = await handler.handle_create(
         CreateAgentCommand(
             agent_id=data.id,
@@ -35,13 +41,20 @@ async def create_agent(data: CreateAgentSchema, handler: AgentCommandHandler = D
 
 
 @router.get("/{agent_id}", response_model=ReadAgentSchema)
-async def get_agent(agent_id: UUID, handler: AgentCommandHandler = Depends(get_agent_handler)):
+async def get_agent(
+    agent_id: UUID,
+    _: UserDTO = Depends(get_admin_user),
+    handler: AgentCommandHandler = Depends(get_agent_handler),
+):
     return await handler.handle_get(agent_id)
 
 
 @router.put("/{agent_id}", response_model=ReadAgentSchema)
 async def update_agent(
-    agent_id: UUID, data: UpdateAgentSchema, handler: AgentCommandHandler = Depends(get_agent_handler)
+    agent_id: UUID,
+    data: UpdateAgentSchema,
+    _: UserDTO = Depends(get_admin_user),
+    handler: AgentCommandHandler = Depends(get_agent_handler),
 ):
     cmd = UpdateAgentPromptCommand(
         agent_id=agent_id,
@@ -57,6 +70,7 @@ async def update_agent(
 async def patch_agent(
     agent_id: UUID,
     data: PatchAgentSchema,
+    _: UserDTO = Depends(get_admin_user),
     handler: AgentCommandHandler = Depends(get_agent_handler),
 ):
     cmd = PatchAgentPromptCommand(
@@ -69,9 +83,10 @@ async def patch_agent(
     return await handler.handle_patch(cmd)
 
 
-@router.delete("/{agent_id}")
+@router.delete("/{agent_id}", status_code=204)
 async def delete_agent(
     agent_id: UUID,
+    _: UserDTO = Depends(get_admin_user),
     handler: AgentCommandHandler = Depends(get_agent_handler),
 ):
     return await handler.handle_delete(agent_id)
