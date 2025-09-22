@@ -70,7 +70,10 @@ class AuthService:
             raise RefreshTokenRevokedError("Refresh token not found or already revoked")
 
         pair = await self.token_service.refresh_token(refresh_token)
-        await self.refresh_repo.revoke(token_hash)
+        try:
+            await self.refresh_repo.revoke(token_hash)
+        except ObjectNotFoundError as exc:
+            raise RefreshTokenRevokedError("Refresh token not found or already revoked") from exc
         return pair
 
     async def logout(self, user_id: UUID) -> None:

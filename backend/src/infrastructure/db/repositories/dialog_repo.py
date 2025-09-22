@@ -1,57 +1,58 @@
 from uuid import UUID
 
-import advanced_alchemy
 from advanced_alchemy.filters import LimitOffset
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.common.exceptions import ObjectNotFoundError
 from src.domain.dialogs.entities import Dialog
 from src.domain.dialogs.repository import DialogRepository
+from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
 from src.infrastructure.db.models import DialogModel
 
 
 class SQLDialogRepository(SQLAlchemyAsyncRepository[DialogModel]):
     model_type = DialogModel
 
+    @property
+    def dialect(self):
+        return self._dialect
+
 
 class SqlAlchemyDialogRepository(DialogRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
-        self._repo = SQLDialogRepository(session=session, auto_commit=False, auto_refresh=True)
+        self._repo = SQLDialogRepository(
+            session=session, auto_commit=False, auto_refresh=True, wrap_exceptions=False
+        )
 
     async def get_by_id(self, dialog_id: UUID) -> Dialog:
-        try:
+        with wrap_sqlalchemy_exception(self._repo.dialect):
             dialog = await self._repo.get(dialog_id)
-        except advanced_alchemy.exceptions.NotFoundError as exc:
-            raise ObjectNotFoundError(f"Dialog with id {dialog_id} not found") from exc
         return self._to_domain(dialog)
 
     async def get_user_dialogs(self, user_id: UUID, page: int, page_size: int) -> tuple[list[Dialog], int]:
         offset = (page - 1) * page_size
-        results, total = await self._repo.list_and_count(
-            DialogModel.user_id == user_id, LimitOffset(offset=offset, limit=page_size)
-        )
+        with wrap_sqlalchemy_exception(self._repo.dialect):
+            results, total = await self._repo.list_and_count(
+                DialogModel.user_id == user_id, LimitOffset(offset=offset, limit=page_size)
+            )
         return [self._to_domain(r) for r in results], total
 
     async def add(self, dialog: Dialog) -> Dialog:
         model = self._to_model(dialog)
-        model = await self._repo.add(model)
+        with wrap_sqlalchemy_exception(self._repo.dialect):
+            model = await self._repo.add(model)
         return self._to_domain(model)
 
     async def update(self, dialog: Dialog) -> Dialog:
         model = self._to_model(dialog)
-        try:
+        with wrap_sqlalchemy_exception(self._repo.dialect):
             model = await self._repo.update(model, attribute_names=["name", "pipeline_id", "user_id"])
-        except advanced_alchemy.exceptions.NotFoundError as exc:
-            raise ObjectNotFoundError(f"Dialog with id {dialog.id} not found") from exc
         return self._to_domain(model)
 
     async def delete(self, dialog_id: UUID) -> None:
-        try:
+        with wrap_sqlalchemy_exception(self._repo.dialect):
             await self._repo.delete(dialog_id)
-        except advanced_alchemy.exceptions.NotFoundError as exc:
-            raise ObjectNotFoundError(f"Dialog with id {dialog_id} not found") from exc
 
     @staticmethod
     def _to_domain(model: DialogModel) -> Dialog:

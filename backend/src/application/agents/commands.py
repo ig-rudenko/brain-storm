@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class CreateAgentCommand(BaseModel):
+    agent_id: UUID
     name: str
     description: str
     prompt: str

@@ -4,9 +4,10 @@ from enum import Enum
 from typing import Any, Literal, Union
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
+from pydantic import ValidationError as PydanticValidationError
 
-from src.domain.common.exceptions import InvalidPipelineError, ObjectNotFoundError
+from src.domain.common.exceptions import ObjectNotFoundError, ValidationError
 
 
 class AgentNode(BaseModel):
@@ -75,12 +76,12 @@ class Pipeline(BaseModel):
                 try:
                     self.root = node.model_validate(root)
                     break
-                except ValidationError:
+                except PydanticValidationError:
                     pass
 
     def validate_agents(self, existing_agents: list[UUID]) -> None:
         if not self.root:
-            raise InvalidPipelineError("Pipeline must have a root node")
+            raise ValidationError("Pipeline must have a root node")
 
         missing = [aid for aid in self.get_agent_ids() if aid not in existing_agents]
         if missing:

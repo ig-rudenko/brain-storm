@@ -3,18 +3,21 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class CreateUpdateAgentSchema(BaseModel):
+class UpdateAgentSchema(BaseModel):
     name: str = Field(..., min_length=2, max_length=150)
     description: str
     prompt: str = Field(..., min_length=2, max_length=1500)
     temperature: float = Field(default=0.7, ge=0.0, le=1.0)
 
-
-class ReadAgentSchema(CreateUpdateAgentSchema):
-    id: UUID
-
     class Config:
         from_attributes = True
+
+class CreateAgentSchema(UpdateAgentSchema):
+    id: UUID
+
+
+class ReadAgentSchema(UpdateAgentSchema):
+    id: UUID
 
 
 class PatchAgentSchema(BaseModel):

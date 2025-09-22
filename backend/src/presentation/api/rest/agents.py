@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from src.application.agents.commands import (
     CreateAgentCommand,
@@ -8,29 +8,29 @@ from src.application.agents.commands import (
     UpdateAgentPromptCommand,
 )
 from src.application.agents.handlers import AgentCommandHandler
-from src.domain.common.exceptions import DomainError
 
 from ..dependencies import get_agent_handler
-from ..schemas.agents import CreateUpdateAgentSchema, PatchAgentSchema, ReadAgentSchema
+from ..schemas.agents import (
+    CreateAgentSchema,
+    PatchAgentSchema,
+    ReadAgentSchema,
+    UpdateAgentSchema,
+)
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
 
 @router.post("", response_model=ReadAgentSchema)
-async def create_agent(
-    data: CreateUpdateAgentSchema, handler: AgentCommandHandler = Depends(get_agent_handler)
-):
-    try:
-        agent = await handler.handle_create(
-            CreateAgentCommand(
-                name=data.name,
-                description=data.description,
-                prompt=data.prompt,
-                temperature=data.temperature,
-            )
+async def create_agent(data: CreateAgentSchema, handler: AgentCommandHandler = Depends(get_agent_handler)):
+    agent = await handler.handle_create(
+        CreateAgentCommand(
+            agent_id=data.id,
+            name=data.name,
+            description=data.description,
+            prompt=data.prompt,
+            temperature=data.temperature,
         )
-    except DomainError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    )
     return agent
 
 
@@ -41,7 +41,7 @@ async def get_agent(agent_id: UUID, handler: AgentCommandHandler = Depends(get_a
 
 @router.put("/{agent_id}", response_model=ReadAgentSchema)
 async def update_agent(
-    agent_id: UUID, data: CreateUpdateAgentSchema, handler: AgentCommandHandler = Depends(get_agent_handler)
+    agent_id: UUID, data: UpdateAgentSchema, handler: AgentCommandHandler = Depends(get_agent_handler)
 ):
     cmd = UpdateAgentPromptCommand(
         agent_id=agent_id,

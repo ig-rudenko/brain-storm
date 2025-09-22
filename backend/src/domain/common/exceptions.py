@@ -11,7 +11,14 @@ class NotFoundError(DomainError): ...
 class UnauthorizedError(DomainError): ...
 
 
-class UniqueError(DomainError):
+class PermissionDeniedError(DomainError): ...
+
+
+class RepositoryError(Exception):
+    """Базовое исключение репозитория."""
+
+
+class UniqueError(RepositoryError):
 
     def __init__(self, message, *, field):
         super().__init__(message)
@@ -19,21 +26,15 @@ class UniqueError(DomainError):
         self.field = field
 
 
-class PermissionDeniedError(DomainError): ...
-
-
-class InvalidPipelineError(DomainError): ...
-
-
-class RepositoryError(DomainError):
-    """Базовое исключение репозитория."""
-
-
 class ObjectNotFoundError(RepositoryError):
     """Объект не найден в репозитории."""
 
 
-class AuthorizationError(DomainError):
+class MultipleResultsFoundError(RepositoryError):
+    """Если в репозитории найдено несколько объектов."""
+
+
+class AuthorizationError(Exception):
     pass
 
 

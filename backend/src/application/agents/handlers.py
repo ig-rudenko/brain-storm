@@ -17,7 +17,8 @@ class AgentCommandHandler:
         self.uow = uow
 
     async def handle_create(self, cmd: CreateAgentCommand) -> Agent:
-        agent = Agent.create(
+        agent = Agent(
+            id=cmd.agent_id,
             name=cmd.name,
             description=cmd.description,
             prompt=cmd.prompt,

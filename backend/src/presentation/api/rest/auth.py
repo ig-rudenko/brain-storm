@@ -2,11 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.application.users.commands import LoginUserCommand, RegisterUserCommand
 from src.application.users.handlers import JWTHandler, RegisterUserHandler
-from src.domain.common.exceptions import (
-    AuthorizationError,
-    ObjectNotFoundError,
-    UniqueError,
-)
+from src.domain.common.exceptions import AuthorizationError, ObjectNotFoundError
 from src.presentation.api.dependencies import (
     get_register_handler,
     get_token_auth_handler,
@@ -30,11 +26,8 @@ async def login(cmd: LoginUserCommand, jwt_handler: JWTHandler = Depends(get_tok
 async def refresh_tokens(
     token_data: OneTokenSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)
 ):
-    try:
-        token_pair = await jwt_handler.handle_refresh_token(token_data.token)
-        return token_pair
-    except AuthorizationError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    token_pair = await jwt_handler.handle_refresh_token(token_data.token)
+    return token_pair
 
 
 @router.post("/token/verify", response_model=UserSchema)
@@ -52,17 +45,13 @@ async def verify_access_token(
 async def register(
     data: RegisterUserSchema, register_handler: RegisterUserHandler = Depends(get_register_handler)
 ):
-    try:
-        user = await register_handler.handle(
-            RegisterUserCommand(
-                username=data.username,
-                password=data.password,
-                email=data.email,
-                first_name=data.first_name,
-                last_name=data.last_name,
-            )
+    user = await register_handler.handle(
+        RegisterUserCommand(
+            username=data.username,
+            password=data.password,
+            email=data.email,
+            first_name=data.first_name,
+            last_name=data.last_name,
         )
-    except UniqueError as exc:
-        raise HTTPException(status_code=400, detail=f"User with same {exc.field} already exists") from exc
-
+    )
     return user

@@ -2,8 +2,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from src.domain.common.exceptions import ObjectNotFoundError, DomainError, AuthorizationError, RepositoryError
 from src.infrastructure.db.base import db_manager
 from src.infrastructure.settings import settings
+from src.presentation.api.exception_handlers import (
+    repository_error_handler,
+    auth_error_handler,
+    domain_error_handler,
+)
 from src.presentation.api.rest.agents import router as agents_rest_router
 from src.presentation.api.rest.auth import router as auth_rest_router
 from src.presentation.api.rest.dialogs import router as dialogs_rest_router
@@ -21,6 +27,13 @@ async def startup(app_instance: FastAPI):
 
 
 app = FastAPI(lifespan=startup)
+
+
+# Регистрируем глобальные обработчики ошибок.
+app.add_exception_handler(RepositoryError, repository_error_handler)
+app.add_exception_handler(DomainError, domain_error_handler)
+app.add_exception_handler(AuthorizationError, auth_error_handler)
+
 
 # RPC API
 app.include_router(pipelines_rpc_router, prefix="/api/v1/rpc")

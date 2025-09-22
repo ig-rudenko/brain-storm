@@ -78,6 +78,8 @@ class JWTHandler:
 
     async def handle_refresh_token(self, token: str) -> JWTokenDTO:
         """
+        Args:
+            token (str): токен для обновления
         Raises:
             RefreshTokenRevokedError: если токен уже был использован.
             InvalidTokenError: если токен не валиден.
