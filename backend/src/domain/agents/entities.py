@@ -51,3 +51,12 @@ class Agent:
         if description := kwargs.get("description"):
             self.description = description.strip()
         return self
+
+
+@dataclass
+class AgentFilter:
+    page: int
+    page_size: int
+    search: str | None = None
+    temp_lt: float | None = None
+    temp_gt: float | None = None

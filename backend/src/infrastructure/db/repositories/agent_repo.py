@@ -1,10 +1,11 @@
 from uuid import UUID
 
+from sqlalchemy import or_
 from advanced_alchemy.filters import LimitOffset
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.agents.entities import Agent
+from src.domain.agents.entities import Agent, AgentFilter
 from src.domain.agents.repository import AgentRepository
 from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
 from src.infrastructure.db.models import AgentModel
@@ -30,10 +31,25 @@ class SqlAlchemyAgentRepository(AgentRepository):
             model = await self._repo.get(agent_id)
             return self._to_domain(model)
 
-    async def get_paginated(self, page: int, page_size: int) -> tuple[list[Agent], int]:
+    async def get_filtered(self, filter_: AgentFilter) -> tuple[list[Agent], int]:
+        offset = (filter_.page - 1) * filter_.page_size
+        filters = [
+            LimitOffset(offset=offset, limit=filter_.page_size),
+        ]
+        if filter_.search is not None:
+            filters.append(
+                or_(
+                    AgentModel.name.ilike(f"%{filter_.search}%"),
+                    AgentModel.description.ilike(f"%{filter_.search}%"),
+                )
+            )
+        if filter_.temp_lt is not None:
+            filters.append(AgentModel.temperature < filter_.temp_lt)
+        if filter_.temp_gt is not None:
+            filters.append(AgentModel.temperature > filter_.temp_gt)
+
         with wrap_sqlalchemy_exception(self._repo.dialect):
-            offset = (page - 1) * page_size
-            results, total = await self._repo.list_and_count(LimitOffset(offset=offset, limit=page_size))
+            results, total = await self._repo.list_and_count(*filters)
             return [self._to_domain(r) for r in results], total
 
     async def get_many(self, agent_ids: list[UUID]) -> list[Agent]:

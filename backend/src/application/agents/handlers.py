@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from src.application.services import AgentLLMClient
-from src.domain.agents.entities import Agent
+from src.domain.agents.entities import Agent, AgentFilter
 from src.domain.common.unit_of_work import UnitOfWork
 from src.domain.messages.entities import Message
 
@@ -10,6 +10,7 @@ from .commands import (
     PatchAgentPromptCommand,
     UpdateAgentPromptCommand,
 )
+from .queries import AgentsQuery
 
 
 class AgentCommandHandler:
@@ -26,10 +27,6 @@ class AgentCommandHandler:
         )
         async with self.uow:
             await self.uow.agents.add(agent)
-        return agent
-
-    async def handle_get(self, agent_id: UUID) -> Agent:
-        agent = await self.uow.agents.get_by_id(agent_id)
         return agent
 
     async def handle_update(self, cmd: UpdateAgentPromptCommand) -> Agent:
@@ -54,6 +51,27 @@ class AgentCommandHandler:
     async def handle_delete(self, agent_id: UUID) -> None:
         async with self.uow:
             await self.uow.agents.delete(agent_id)
+
+
+class AgentQueryHandler:
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
+
+    async def handle_get(self, agent_id: UUID) -> Agent:
+        agent = await self.uow.agents.get_by_id(agent_id)
+        return agent
+
+    async def handle_get_list(self, query: AgentsQuery) -> tuple[list[Agent], int]:
+        agents, count = await self.uow.agents.get_filtered(
+            AgentFilter(
+                search=query.search,
+                temp_gt=query.temp_gt,
+                temp_lt=query.temp_lt,
+                page=query.page,
+                page_size=query.page_size,
+            )
+        )
+        return agents, count
 
 
 class AgentRunner:

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from .entities import Agent
+from .entities import Agent, AgentFilter
 
 
 class AgentRepository(ABC):
@@ -11,7 +11,7 @@ class AgentRepository(ABC):
     async def get_by_id(self, agent_id: UUID) -> Agent: ...
 
     @abstractmethod
-    async def get_paginated(self, page: int, page_size: int) -> tuple[list[Agent], int]: ...
+    async def get_filtered(self, filter_: AgentFilter) -> tuple[list[Agent], int]: ...
 
     @abstractmethod
     async def get_many(self, agent_ids: list[UUID]) -> list[Agent]: ...
